@@ -52,6 +52,24 @@ export class AuthController {
       next(error);
     }
   }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, newPassword } = req.body;
+      if (!email || !newPassword) {
+        res.status(400).json({ error: { message: 'Email and new password are required' } });
+        return;
+      }
+      const result = await authService.resetPassword(email, newPassword);
+      res.status(200).json({ data: result });
+    } catch (error: any) {
+      if (error.message === 'User not found') {
+        res.status(404).json({ error: { message: error.message } });
+        return;
+      }
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

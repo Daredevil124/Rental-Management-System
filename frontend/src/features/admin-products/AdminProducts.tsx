@@ -24,8 +24,8 @@ const AdminProducts = () => {
         adminApi.getPriceLists(),
         adminApi.getRentalPeriods()
       ]);
-      setPriceLists(plRes.data || []);
-      setRentalPeriods(rpRes.data || []);
+      setPriceLists((plRes as any).data || []);
+      setRentalPeriods((rpRes as any).data || []);
     } catch (err) {
       console.error('Failed to fetch pricing metadata', err);
     }

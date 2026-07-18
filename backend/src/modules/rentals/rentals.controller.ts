@@ -4,22 +4,28 @@ import { prisma } from '../../db/prisma.js';
 export const checkout = async (req: Request, res: Response) => {
   try {
     const customerId = req.user!.id;
-    const cart = await prisma.cart.findFirst({
-      where: { userId: customerId },
-      include: { items: true }
-    });
+    const { items, deliveryMethod } = req.body;
+    
+    if (!items || items.length === 0) return res.status(400).json({ error: 'Empty cart' });
 
-    if (!cart || cart.items.length === 0) return res.status(400).json({ error: 'Empty' });
+    // Fetch defaults to satisfy Prisma relations
+    const defaultVariant = await prisma.productVariant.findFirst();
+    const defaultPriceList = await prisma.priceList.findFirst();
+    const defaultPeriod = await prisma.rentalPeriod.findFirst();
+
+    if (!defaultVariant || !defaultPriceList || !defaultPeriod) {
+      return res.status(500).json({ error: 'Database not properly seeded for checkout' });
+    }
 
     // Calculate totals
     let subtotal = 0;
     let depositTotal = 0;
 
-    cart.items.forEach(item => {
-      const price = Number(item.unitPrice);
-      const deposit = Number(item.depositAmount);
-      const qty = item.quantity;
-      subtotal += price * qty;
+    items.forEach((item: any) => {
+      const price = Number(item.price);
+      const deposit = Number(item.deposit);
+      const qty = item.quantity || 1;
+      subtotal += price; 
       depositTotal += deposit * qty;
     });
 
@@ -35,22 +41,22 @@ export const checkout = async (req: Request, res: Response) => {
         grandTotal,
         confirmedAt: new Date(),
         items: {
-          create: cart.items.map(item => ({
+          create: items.map((item: any) => ({
             productId: item.productId,
-            variantId: item.variantId,
-            priceListId: item.priceListId,
-            rentalPeriodId: item.rentalPeriodId,
-            quantity: item.quantity,
-            startsAt: item.startsAt,
-            endsAt: item.endsAt,
-            unitPrice: item.unitPrice,
-            depositAmount: item.depositAmount,
+            variantId: defaultVariant.id,
+            priceListId: defaultPriceList.id,
+            rentalPeriodId: defaultPeriod.id,
+            quantity: item.quantity || 1,
+            startsAt: new Date(item.startDate || Date.now()),
+            endsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            unitPrice: Number(item.price) / (item.quantity || 1),
+            depositAmount: Number(item.deposit),
           }))
         }
       }
     });
 
-    // Create payment records for base rental and deposit
+    // Create payment records
     await prisma.payment.create({
       data: {
         rentalOrderId: rentalOrder.id,
@@ -77,32 +83,8 @@ export const checkout = async (req: Request, res: Response) => {
           paidAt: new Date()
         }
       });
-
-      // Create deposit hold log
-      await prisma.depositTransaction.create({
-        data: {
-          rentalOrderId: rentalOrder.id,
-          actorId: customerId,
-          type: 'HOLD',
-          status: 'HELD',
-          amount: depositTotal,
-          reason: 'Initial security deposit collection during order checkout'
-        }
-      });
     }
 
-    // Schedule a Pickup Task automatically for warehouse staff
-    await prisma.pickupTask.create({
-      data: {
-        rentalOrderId: rentalOrder.id,
-        status: 'SCHEDULED',
-        scheduledAt: new Date()
-      }
-    });
-
-    // Clear cart items
-    await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
-    
     res.json({ data: rentalOrder });
   } catch (error) {
     console.error('[Rentals API] Checkout failed:', error);
@@ -138,5 +120,71 @@ export const getInvoice = async (req: Request, res: Response) => {
     res.json({ data: invoice });
   } catch (error) {
     res.status(500).json({ error: 'Failed' });
+  }
+};
+
+import PDFDocument from 'pdfkit';
+
+export const downloadInvoice = async (req: Request, res: Response) => {
+  try {
+    const { rentalId } = req.params;
+    const customerId = req.user!.id;
+    
+    const rental = await prisma.rentalOrder.findFirst({
+      where: { id: rentalId, customerId },
+      include: { items: { include: { product: true } } }
+    });
+
+    if (!rental) return res.status(404).json({ error: 'Not found' });
+
+    // Set PDF headers
+    res.setHeader('Content-disposition', `attachment; filename="Invoice_${rental.orderNumber}.pdf"`);
+    res.setHeader('Content-type', 'application/pdf');
+
+    // Initialize PDF document
+    const doc = new PDFDocument({ margin: 50 });
+    
+    // Pipe PDF straight to the HTTP response
+    doc.pipe(res);
+
+    // Build PDF content
+    doc.fontSize(20).text('RENTAL INVOICE', { align: 'center' });
+    doc.moveDown();
+    
+    doc.fontSize(12).text(`Order Number: ${rental.orderNumber}`);
+    doc.text(`Order Date: ${new Date(rental.createdAt).toLocaleString()}`);
+    doc.text(`Status: ${rental.status}`);
+    doc.moveDown(2);
+
+    doc.fontSize(16).text('Items', { underline: true });
+    doc.moveDown();
+
+    rental.items.forEach(item => {
+        doc.fontSize(12).fillColor('black').text(`• ${item.product.name} (Qty: ${item.quantity})`);
+        doc.fontSize(10).fillColor('gray').text(`   Rental Price: ₹${item.unitPrice}`);
+        doc.fillColor('gray').text(`   Deposit: ₹${item.depositAmount}`);
+        doc.moveDown(0.5);
+    });
+
+    doc.moveDown();
+    doc.fontSize(16).fillColor('black').text('Financials', { underline: true });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Rental Subtotal: ₹${rental.subtotal}`);
+    doc.text(`Security Deposit: ₹${rental.depositTotal}`);
+    doc.moveDown();
+    
+    doc.fontSize(14).text(`GRAND TOTAL: ₹${rental.grandTotal}`, { stroke: true });
+    
+    doc.moveDown(3);
+    doc.fontSize(10).fillColor('gray').text('Thank you for renting with RentOps!', { align: 'center' });
+
+    // Finalize PDF
+    doc.end();
+  } catch (error) {
+    console.error('Invoice download failed:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed' });
+    }
   }
 };

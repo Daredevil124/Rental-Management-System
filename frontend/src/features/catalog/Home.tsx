@@ -197,7 +197,7 @@ const Home = () => {
             }}>
               <X size={20} />
             </button>
-            <span className="product-category">{selectedProduct.category}</span>
+            <span className="product-category">{selectedProduct.categoryId}</span>
             <h2 className="text-gradient mt-2">{selectedProduct.name}</h2>
             <p className="product-description mt-4">{selectedProduct.description}</p>
 

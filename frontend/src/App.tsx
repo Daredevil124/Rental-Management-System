@@ -3,7 +3,6 @@ import './App.css';
 import Navbar from './components/Navbar';
 import Home from './features/catalog/Home';
 import AdminDashboard from './features/admin-dashboard/AdminDashboard';
-import PortalSplash from './features/auth/SplashScreen';
 import Login from './features/auth/Login';
 import Signup from './features/auth/Signup';
 import VendorSignup from './features/auth/VendorSignup';
@@ -35,7 +34,7 @@ function App() {
         <Navbar />
         <main className="main-content container">
           <Routes>
-            <Route path="/" element={<PortalSplash />} />
+            <Route path="/" element={<Home />} />
             <Route path="/catalog" element={<Home />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
