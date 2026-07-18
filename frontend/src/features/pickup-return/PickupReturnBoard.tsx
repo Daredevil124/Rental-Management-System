@@ -29,8 +29,8 @@ const PickupReturnBoard = () => {
         adminApi.getPickups(),
         adminApi.getReturns()
       ]);
-      setPickups(pickupRes.data?.data || []);
-      setReturns(returnRes.data?.data || []);
+      setPickups(pickupRes.data || []);
+      setReturns(returnRes.data || []);
     } catch (err) {
       console.error('Failed to fetch operations board tasks:', err);
     } finally {

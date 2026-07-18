@@ -21,10 +21,10 @@ const AdminDashboard = () => {
     const fetchDashboard = async () => {
       try {
         const statsRes: any = await adminApi.getDashboardSummary();
-        setSummary(statsRes.data?.data);
+        setSummary(statsRes.data);
         
         const activityRes: any = await adminApi.getRentalActivity();
-        setActivities(activityRes.data?.data || []);
+        setActivities(activityRes.data || []);
       } catch (err) {
         console.error('Failed to fetch dashboard data', err);
       } finally {
