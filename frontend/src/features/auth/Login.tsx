@@ -1,14 +1,41 @@
+import { useState } from 'react';
 import './Login.css';
-import { ArrowRight, User, Lock } from 'lucide-react';
+import { ArrowRight, User, Lock, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { authApi } from '../../api/auth';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate admin login
-    navigate('/admin');
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await authApi.login({ email, password });
+      
+      if (response?.data?.token) {
+        localStorage.setItem('token', response.data.token);
+        
+        // Redirect based on role
+        if (response.data.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      } else {
+        setError('Invalid credentials received from server');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Invalid User ID or Password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -19,12 +46,25 @@ const Login = () => {
           <p className="login-subtitle">Sign in to your account to continue</p>
         </div>
 
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg flex items-center gap-2 mb-4 text-sm">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
             <label>Email Address</label>
             <div className="input-with-icon">
               <User size={18} className="input-icon" />
-              <input type="email" placeholder="admin@rentops.com" required />
+              <input 
+                type="email" 
+                placeholder="admin@rentops.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
             </div>
           </div>
           
@@ -32,7 +72,13 @@ const Login = () => {
             <label>Password</label>
             <div className="input-with-icon">
               <Lock size={18} className="input-icon" />
-              <input type="password" placeholder="••••••••" required />
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+              />
             </div>
           </div>
 
@@ -43,8 +89,14 @@ const Login = () => {
             <Link to="/reset-password" className="forgot-password">Forgot Password?</Link>
           </div>
 
-          <button type="submit" className="btn-primary w-full justify-center mt-4">
-            Sign In <ArrowRight size={18} />
+          <button 
+            type="submit" 
+            className="btn-primary w-full justify-center mt-4"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : (
+              <>Sign In <ArrowRight size={18} /></>
+            )}
           </button>
 
           <p className="secure-payment-note">
