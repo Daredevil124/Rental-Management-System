@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { DashboardSummary } from '../types/api';
+import type { DashboardSummary } from '../types/api';
 
 export const adminApi = {
   // Dashboard

@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { RentalListResponse } from '../types/api';
+import type { RentalListResponse } from '../types/api';
 
 export const rentalsApi = {
   // Cart operations

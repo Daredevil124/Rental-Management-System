@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { ProductListResponse, ProductDetailResponse } from '../types/api';
+import type { ProductListResponse, ProductDetailResponse } from '../types/api';
 
 export const productsApi = {
   getProducts: (params?: any) => {
