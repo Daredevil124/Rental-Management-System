@@ -30,7 +30,7 @@ const AdminPricing = () => {
   };
 
   return (
-    <div className="admin-pricing-container animate-fade-in relative">
+    <div className="admin-page animate-fade-in relative">
       <div className="admin-page-header">
         <div>
           <h1 className="text-gradient">Pricing & Rules</h1>
