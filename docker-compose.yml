@@ -101,8 +101,8 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:5000/api/v1
-      - VITE_API_URL=http://localhost:5000/api/v1
+      - REACT_APP_API_URL=http://localhost:5001/api/v1
+      - VITE_API_URL=http://localhost:5001/api/v1
     depends_on:
       - backend
     networks:
