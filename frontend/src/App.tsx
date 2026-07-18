@@ -19,13 +19,9 @@ import { useState, useEffect } from 'react';
 import SplashScreen from './features/splash/SplashScreen';
 
 function App() {
-  const [showSplash, setShowSplash] = useState(() => {
-    // Only show splash screen once per session
-    return !sessionStorage.getItem('splashShown');
-  });
+  const [showSplash, setShowSplash] = useState(true);
 
   const handleSplashFinish = () => {
-    sessionStorage.setItem('splashShown', 'true');
     setShowSplash(false);
   };
 
