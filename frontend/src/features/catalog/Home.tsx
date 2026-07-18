@@ -10,6 +10,7 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [startDate, setStartDate] = useState('');
+  const [startTime, setStartTime] = useState('10:00');
   const [durationHours, setDurationHours] = useState(0);
   const [durationDays, setDurationDays] = useState(1);
   const [durationWeeks, setDurationWeeks] = useState(0);
@@ -47,10 +48,17 @@ const Home = () => {
 
   const handleAddToCart = () => {
     if (!selectedProduct) return;
-    if (!startDate) {
-      alert('Please select a start date');
+    if (!startDate || !startTime) {
+      alert('Please select both a start date and time');
       return;
     }
+    
+    const combinedDateTime = `${startDate}T${startTime}`;
+    if (new Date(combinedDateTime) < new Date()) {
+      alert('Start date cannot be in the past. Please select a valid future date and time.');
+      return;
+    }
+
     if (durationHours === 0 && durationDays === 0 && durationWeeks === 0) {
       alert('Please select a valid duration');
       return;
@@ -66,8 +74,13 @@ const Home = () => {
       name: selectedProduct.name,
       price: totalPrice,
       deposit: deposit,
-      startDate,
+      startDate: combinedDateTime,
       duration: `${durationWeeks}w ${durationDays}d ${durationHours}h`,
+      durationWeeks,
+      durationDays,
+      durationHours,
+      prices,
+      quantity: 1,
     };
 
     const currentCart = localStorage.getItem('cart');
@@ -79,6 +92,7 @@ const Home = () => {
 
     setSelectedProduct(null);
     setStartDate('');
+    setStartTime('10:00');
     setDurationHours(0);
     setDurationDays(1);
     setDurationWeeks(0);
@@ -110,6 +124,11 @@ const Home = () => {
     if (depRule) return parseFloat(depRule.amount);
     const base = getBase(product);
     return Math.round(base * 1.5);
+  };
+
+  const getLocalMinDate = () => {
+    const now = new Date();
+    return now.toISOString().split('T')[0]; // Returns YYYY-MM-DD
   };
 
   return (
@@ -166,17 +185,12 @@ const Home = () => {
       </section>
 
       {selectedProduct && (
-        <div className="product-modal-backdrop" onClick={() => {
-          setSelectedProduct(null);
-          setStartDate('');
-          setDurationHours(0);
-          setDurationDays(1);
-          setDurationWeeks(0);
-        }}>
+        <div className="product-modal-backdrop">
           <div className="product-modal glass-panel" onClick={(e) => e.stopPropagation()}>
             <button className="close-btn" onClick={() => {
               setSelectedProduct(null);
               setStartDate('');
+              setStartTime('10:00');
               setDurationHours(0);
               setDurationDays(1);
               setDurationWeeks(0);
@@ -208,15 +222,38 @@ const Home = () => {
             </div>
 
             <div className="rental-options mt-6">
-              <div className="form-group mb-4">
-                <label>Start Date & Time</label>
-                <input
-                  type="datetime-local"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="form-group">
+                  <label className="text-sm text-gray-300 font-medium block mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    min={getLocalMinDate()}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    onClick={(e) => {
+                      if ('showPicker' in e.target) {
+                        try { (e.target as HTMLInputElement).showPicker(); } catch (err) {}
+                      }
+                    }}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500 cursor-pointer"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="text-sm text-gray-300 font-medium block mb-1">Start Time</label>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    onClick={(e) => {
+                      if ('showPicker' in e.target) {
+                        try { (e.target as HTMLInputElement).showPicker(); } catch (err) {}
+                      }
+                    }}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500 cursor-pointer"
+                    required
+                  />
+                </div>
               </div>
 
               <label className="block text-sm mb-2 text-gray-300 font-medium">Duration</label>
