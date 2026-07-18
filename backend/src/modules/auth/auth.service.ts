@@ -20,7 +20,7 @@ export class AuthService {
         email: data.email,
         passwordHash,
         fullName: data.fullName,
-        role: data.role ?? 'CUSTOMER',
+        role: (data.role ?? 'CUSTOMER') as any,
         companyName: data.companyName,
         productCategory: data.productCategory,
         gstNo: data.gstNo,
