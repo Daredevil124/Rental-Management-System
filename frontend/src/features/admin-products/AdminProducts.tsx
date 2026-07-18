@@ -1,31 +1,52 @@
 import { useState } from 'react';
 import './AdminProducts.css';
-import { Plus, Edit2, Archive, X } from 'lucide-react';
+import { Plus, Edit2, Archive, X, Tag } from 'lucide-react';
 
 const AdminProducts = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [products, setProducts] = useState([
-    { sku: 'CAM-PRO-01', name: 'Pro Camera Kit 1', cat: 'Photography', price: '₹4,500/day', stock: 5, depositRule: '20% of Value', lateFeeRule: '₹500/day' },
-    { sku: 'DRN-MAX-02', name: 'Drone Pro Max', cat: 'Videography', price: '₹6,000/day', stock: 2, depositRule: 'Fixed ₹5000', lateFeeRule: '₹1000/day' },
-    { sku: 'LGT-STD-01', name: 'Lighting Stand Basic', cat: 'Lighting', price: '₹1,200/day', stock: 12, depositRule: 'Fixed ₹1000', lateFeeRule: '₹200/day' },
+    { sku: 'CAM-PRO-01', name: 'Pro Camera Kit 1', cat: 'Photography', price: '₹4,500/day', stock: 5, depositRule: '20% of Value', lateFeeRule: '₹500/day', variants: 2 },
+    { sku: 'DRN-MAX-02', name: 'Drone Pro Max', cat: 'Videography', price: '₹6,000/day', stock: 2, depositRule: 'Fixed ₹5000', lateFeeRule: '₹1000/day', variants: 1 },
+    { sku: 'LGT-STD-01', name: 'Lighting Stand Basic', cat: 'Lighting', price: '₹1,200/day', stock: 12, depositRule: 'Fixed ₹1000', lateFeeRule: '₹200/day', variants: 4 },
   ]);
 
   const [newProduct, setNewProduct] = useState({ 
     sku: '', name: '', cat: 'Photography', price: '', stock: 0, 
     depositRule: '', lateFeeRule: '', rentalPeriods: '',
-    lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000
+    lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000,
+    variants: [{ sku: '', brand: '', manufacturer: '', color: '', size: '' }]
   });
+
+  const handleAddVariant = () => {
+    setNewProduct({
+      ...newProduct,
+      variants: [...newProduct.variants, { sku: '', brand: '', manufacturer: '', color: '', size: '' }]
+    });
+  };
+
+  const updateVariant = (index: number, field: string, value: string) => {
+    const updated = [...newProduct.variants];
+    updated[index] = { ...updated[index], [field]: value };
+    setNewProduct({ ...newProduct, variants: updated });
+  };
+
+  const removeVariant = (index: number) => {
+    const updated = [...newProduct.variants];
+    updated.splice(index, 1);
+    setNewProduct({ ...newProduct, variants: updated });
+  };
 
   const handleAddProduct = () => {
     if (newProduct.sku && newProduct.name) {
-      setProducts([...products, { ...newProduct }]);
+      setProducts([...products, { ...newProduct, variants: newProduct.variants.length }]);
       setShowAddModal(false);
       setNewProduct({ 
         sku: '', name: '', cat: '', price: '', stock: 0,
         depositRule: 'Fixed ₹2000 per order',
         lateFeeRule: '₹500 / day',
         rentalPeriods: 'Daily, Weekly',
-        lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000
+        lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000,
+        variants: [{ sku: '', brand: '', manufacturer: '', color: '', size: '' }]
       });
     }
   };
@@ -50,7 +71,7 @@ const AdminProducts = () => {
               <th>Product Name</th>
               <th>Category</th>
               <th>Base Price</th>
-              <th>Rules</th>
+              <th>Variants</th>
               <th>Available Stock</th>
               <th>Actions</th>
             </tr>
@@ -63,8 +84,9 @@ const AdminProducts = () => {
                 <td>{prod.cat}</td>
                 <td>{prod.price}</td>
                 <td>
-                  <div className="text-xs text-gray-400">Deposit: {prod.depositRule}</div>
-                  <div className="text-xs text-gray-400">Late Fee: {prod.lateFeeRule}</div>
+                  <span className="text-xs bg-gray-800 text-indigo-300 px-2 py-1 rounded border border-gray-700 flex items-center gap-1 w-max">
+                    <Tag size={12} /> {prod.variants} Variant(s)
+                  </span>
                 </td>
                 <td>
                   <span className={`status-badge ${prod.stock < 3 ? 'status-warning' : 'status-active'}`}>
@@ -85,76 +107,128 @@ const AdminProducts = () => {
 
       {showAddModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="glass-panel p-6 w-full max-w-2xl animate-fade-in border border-indigo-500/30 my-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">Add New Product & Pricing Rules</h2>
+          <div className="glass-panel p-6 w-full max-w-3xl animate-fade-in border border-indigo-500/30 my-8">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+              <h2 className="text-xl font-semibold text-white">Add New Product & Variants</h2>
               <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white"><X size={20}/></button>
             </div>
             
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-indigo-400 mb-2 border-b border-gray-700 pb-2">Basic Info</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">SKU</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} placeholder="e.g. CAM-02" />
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+              
+              <div>
+                <h3 className="text-lg font-medium text-indigo-400 mb-3 border-b border-gray-700 pb-2">Basic Info</h3>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Base Product SKU</label>
+                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} placeholder="e.g. CAM-02" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Product Name</label>
+                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} placeholder="e.g. Cinema Camera" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Product Name</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} placeholder="e.g. Cinema Camera" />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Category</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.cat} onChange={e => setNewProduct({...newProduct, cat: e.target.value})} placeholder="e.g. Photography" />
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Base Price</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} placeholder="e.g. ₹5,000/day" />
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Initial Stock</label>
-                  <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})} />
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Category</label>
+                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.cat} onChange={e => setNewProduct({...newProduct, cat: e.target.value})} placeholder="e.g. Photography" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Base Price</label>
+                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} placeholder="e.g. ₹5,000/day" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Initial Total Stock</label>
+                    <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})} />
+                  </div>
                 </div>
               </div>
 
-              <h3 className="text-lg font-medium text-indigo-400 mb-2 mt-6 border-b border-gray-700 pb-2">Pricing & Penalty Rules</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Security Deposit</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.depositRule} onChange={e => setNewProduct({...newProduct, depositRule: e.target.value})} placeholder="e.g. 20% or ₹5000" />
+              <div>
+                <div className="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
+                  <h3 className="text-lg font-medium text-indigo-400">Product Variants</h3>
+                  <button className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors" onClick={handleAddVariant}>
+                    <Plus size={12} /> Add Variant
+                  </button>
                 </div>
                 
-                <div className="bg-gray-800/50 p-3 rounded border border-gray-700 space-y-3">
-                  <label className="block text-gray-300 text-sm font-medium">Late Return Configuration</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-gray-400 text-xs mb-1">Fee Type</label>
-                      <select className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.lateFeeUnit || 'Daily'} onChange={e => setNewProduct({...newProduct, lateFeeUnit: e.target.value})}>
-                        <option>Hourly</option>
-                        <option>Daily</option>
-                        <option>Weekly</option>
-                        <option>Monthly</option>
-                      </select>
+                <div className="space-y-3">
+                  {newProduct.variants.map((variant, index) => (
+                    <div key={index} className="bg-gray-800/50 p-3 rounded border border-gray-700 relative group">
+                      {newProduct.variants.length > 1 && (
+                        <button className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeVariant(index)}>
+                          <X size={12} />
+                        </button>
+                      )}
+                      <div className="grid grid-cols-5 gap-3">
+                        <div>
+                          <label className="block text-gray-400 text-xs mb-1">Variant SKU</label>
+                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.sku} onChange={e => updateVariant(index, 'sku', e.target.value)} placeholder="e.g. CAM-02-BLK" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-400 text-xs mb-1">Brand</label>
+                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.brand} onChange={e => updateVariant(index, 'brand', e.target.value)} placeholder="Sony, Canon" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-400 text-xs mb-1">Manufacturer</label>
+                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.manufacturer} onChange={e => updateVariant(index, 'manufacturer', e.target.value)} placeholder="Manufacturer" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-400 text-xs mb-1">Color</label>
+                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.color} onChange={e => updateVariant(index, 'color', e.target.value)} placeholder="Black, Silver" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-400 text-xs mb-1">Size / Specs</label>
+                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.size} onChange={e => updateVariant(index, 'size', e.target.value)} placeholder="35mm, Large" />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-gray-400 text-xs mb-1">Amount (₹)</label>
-                      <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.lateFeeAmount || 500} onChange={e => setNewProduct({...newProduct, lateFeeAmount: Number(e.target.value)})} />
-                    </div>
-                    <div>
-                      <label className="block text-gray-400 text-xs mb-1">Grace Period (Minutes)</label>
-                      <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.gracePeriod || 120} onChange={e => setNewProduct({...newProduct, gracePeriod: Number(e.target.value)})} />
-                    </div>
-                    <div>
-                      <label className="block text-gray-400 text-xs mb-1">Maximum Cap (₹)</label>
-                      <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.maxFee || 5000} onChange={e => setNewProduct({...newProduct, maxFee: Number(e.target.value)})} />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-indigo-400 mb-3 border-b border-gray-700 pb-2">Pricing & Penalty Rules</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Security Deposit Rule</label>
+                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.depositRule} onChange={e => setNewProduct({...newProduct, depositRule: e.target.value})} placeholder="e.g. 20% or ₹5000" />
+                  </div>
+                  
+                  <div className="bg-gray-800/50 p-3 rounded border border-gray-700 space-y-3">
+                    <label className="block text-gray-300 text-sm font-medium">Late Return Configuration</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1">Fee Type</label>
+                        <select className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.lateFeeUnit || 'Daily'} onChange={e => setNewProduct({...newProduct, lateFeeUnit: e.target.value})}>
+                          <option>Hourly</option>
+                          <option>Daily</option>
+                          <option>Weekly</option>
+                          <option>Monthly</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1">Amount (₹)</label>
+                        <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm focus:border-indigo-500" value={newProduct.lateFeeAmount || 500} onChange={e => setNewProduct({...newProduct, lateFeeAmount: Number(e.target.value)})} />
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1">Grace Period (Minutes)</label>
+                        <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm focus:border-indigo-500" value={newProduct.gracePeriod || 120} onChange={e => setNewProduct({...newProduct, gracePeriod: Number(e.target.value)})} />
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1">Maximum Cap (₹)</label>
+                        <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm focus:border-indigo-500" value={newProduct.maxFee || 5000} onChange={e => setNewProduct({...newProduct, maxFee: Number(e.target.value)})} />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <button className="btn-primary w-full mt-6 justify-center py-3" onClick={handleAddProduct}>Save Product & Rules</button>
             </div>
+            
+            <div className="pt-4 border-t border-gray-700 mt-4">
+              <button className="btn-primary w-full justify-center py-3" onClick={handleAddProduct}>Save Product & Variants</button>
+            </div>
+            
           </div>
         </div>
       )}
