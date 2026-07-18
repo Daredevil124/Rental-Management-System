@@ -84,6 +84,12 @@ export const confirmReturn = async (req: Request, res: Response) => {
       }
     }
 
+    // Calculate refund amount
+    const depositTotal = Number(rentalOrder.depositTotal) || 0;
+    const penaltyAmount = totalLateFee;
+    let amountToRefund = depositTotal - penaltyAmount;
+    if (amountToRefund < 0) amountToRefund = 0; // Prevent negative refund
+
     // Update order
     const updatedOrder = await prisma.rentalOrder.update({
       where: { id: rentalId },
@@ -91,11 +97,35 @@ export const confirmReturn = async (req: Request, res: Response) => {
         status: 'RETURNED',
         returnedAt,
         lateFeeTotal: totalLateFee,
-        grandTotal: { increment: totalLateFee } // In practice, deduct from deposit
+        grandTotal: { increment: totalLateFee } 
       }
     });
 
-    // We can handle security deposit logic here:
+    // Record Deposit Transactions
+    if (penaltyAmount > 0) {
+      await prisma.depositTransaction.create({
+        data: {
+          rentalOrderId: rentalId,
+          type: 'DEDUCTION',
+          status: 'PARTIALLY_DEDUCTED',
+          amount: penaltyAmount <= depositTotal ? penaltyAmount : depositTotal,
+          reason: 'Late Return Penalty Deduction'
+        }
+      });
+    }
+
+    if (amountToRefund > 0) {
+      await prisma.depositTransaction.create({
+        data: {
+          rentalOrderId: rentalId,
+          type: 'REFUND',
+          status: 'REFUNDED',
+          amount: amountToRefund,
+          reason: 'Remaining Deposit Refunded in Cash'
+        }
+      });
+    }
+
     // Generate/Update Invoice automatically
     const existingInvoice = await prisma.invoice.findFirst({
       where: { rentalOrderId: rentalId }
@@ -122,7 +152,10 @@ export const confirmReturn = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({ data: updatedOrder, message: `Confirmed return for rental ${rentalId} with late fee of ${totalLateFee}` });
+    res.json({ 
+      data: updatedOrder, 
+      message: `Return processed. Penalty: ₹${totalLateFee}. Cash Refund: ₹${amountToRefund}.` 
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to confirm return' });
   }
