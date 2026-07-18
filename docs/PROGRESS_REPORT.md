@@ -288,14 +288,14 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### B06 Admin Dashboard UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Operational dashboard cards, tables for due today/upcoming/overdue, revenue/deposit/late fee cards.
 - Own files: `frontend/src/features/admin-dashboard/**`
 - Depends on: B01, A10 contract
 - Uses endpoints:
   - `GET /api/v1/admin/dashboard/summary`
   - `GET /api/v1/admin/dashboard/rental-activity`
-- Done note:
+- Done note: Created interactive operational dashboard with metrics and recent orders table.
 
 ### B07 Admin Products And Pricing UI
 
@@ -331,11 +331,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### B10 UI Polish And Demo Flow
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Seed-data-friendly screens, empty/loading/error states, responsive checks, demo navigation path.
 - Own files: `frontend/src/**`
 - Depends on: B02-B09
-- Done note:
+- Done note: Polished all screens for responsive layout, integrated navigation between admin and customer sides for a seamless demo flow.
 
 ## Person C - Platform + Realtime + Integrations
 
