@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './Profile.css';
 import { User as UserIcon, MapPin, CreditCard } from 'lucide-react';
 import { authApi } from '../../api/auth';
-import { User } from '../../types/api';
+import type { User } from '../../types/api';
 
 const Profile = () => {
   const [user, setUser] = useState<User | null>(null);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './Home.css';
 import { Calendar, Filter, ArrowRight } from 'lucide-react';
 import { productsApi } from '../../api/products';
-import { Product } from '../../types/api';
+import type { Product } from '../../types/api';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
