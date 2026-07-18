@@ -37,12 +37,37 @@ const Navbar = () => {
                 <Tag size={20} />
                 <span>Pricing</span>
               </Link>
+              {localStorage.getItem('token') && (
+                <button 
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                  }} 
+                  className="nav-link" 
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  Logout
+                </button>
+              )}
             </>
           ) : (
             <>
               <Link to="/" className="nav-link">Catalog</Link>
               <Link to="/orders" className="nav-link">My Rentals</Link>
-              <Link to="/login" className="nav-link">Login</Link>
+              {localStorage.getItem('token') ? (
+                <button 
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                  }} 
+                  className="nav-link" 
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link to="/login" className="nav-link">Login</Link>
+              )}
               <Link to="/cart" className="cart-btn">
                 <ShoppingCart size={20} />
                 <span className="cart-badge">1</span>
