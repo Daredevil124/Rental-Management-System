@@ -5,6 +5,7 @@ import Home from './features/catalog/Home';
 import AdminDashboard from './features/admin-dashboard/AdminDashboard';
 import Login from './features/auth/Login';
 import Signup from './features/auth/Signup';
+import ResetPassword from './features/auth/ResetPassword';
 import Cart from './features/cart/Cart';
 import Checkout from './features/checkout/Checkout';
 import PickupReturnBoard from './features/pickup-return/PickupReturnBoard';
@@ -14,10 +15,20 @@ import AdminProducts from './features/admin-products/AdminProducts';
 import AdminQuotations from './features/admin-quotations/AdminQuotations';
 import AdminPricing from './features/admin-pricing/AdminPricing';
 
+import { useState, useEffect } from 'react';
+import SplashScreen from './features/splash/SplashScreen';
+
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
+
   return (
     <Router>
-      <div className="app-container">
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
+      <div className={`app-container ${showSplash ? 'hidden' : ''}`}>
         <Navbar />
         <main className="main-content container">
           <Routes>
@@ -28,6 +39,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/operations" element={<PickupReturnBoard />} />
             <Route path="/admin/products" element={<AdminProducts />} />

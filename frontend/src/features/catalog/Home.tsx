@@ -1,55 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Home.css';
 import { Calendar, Filter, ArrowRight, X } from 'lucide-react';
-
-const MOCK_PRODUCTS = [
-  {
-    id: 'dew-hammer-drill',
-    name: 'DeWalt Rotary Hammer Drill',
-    category: 'Tools',
-    price: 45,
-    deposit: 100,
-    description: 'Heavy duty rotary hammer drill for concrete and masonry drilling. Features active vibration control and variable speed.',
-  },
-  {
-    id: 'yam-generator-2000',
-    name: 'Yamaha Portable Generator',
-    category: 'Power',
-    price: 85,
-    deposit: 250,
-    description: 'Quiet, fuel-efficient portable inverter generator. Provides clean 2000W power for sensitive electronics.',
-  },
-  {
-    id: 'ext-cord-50ft',
-    name: 'Outdoor Extension Cord 50ft',
-    category: 'Accessories',
-    price: 10,
-    deposit: 20,
-    description: 'Heavy-duty 12 gauge outdoor extension cord. Weather resistant and highly visible color.',
-  },
-  {
-    id: 'pro-camera-kit',
-    name: 'Pro DSLR Camera Kit',
-    category: 'Photography',
-    price: 55,
-    deposit: 150,
-    description: 'High-end DSLR camera body with 24-70mm f/2.8 lens, 2 batteries, charger, and 64GB card included.',
-  }
-];
+import { productsApi } from '../../api/products';
+import type { Product } from '../../types/api';
 
 const Home = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [period, setPeriod] = useState('Daily');
 
-  const filteredProducts = MOCK_PRODUCTS.filter(product =>
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await productsApi.getProducts();
+        setProducts(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch products', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase())
+    (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleAddToCart = () => {
+    if (!selectedProduct) return;
     if (!startDate || !endDate) {
       alert('Please select start and end dates');
       return;
@@ -58,8 +42,8 @@ const Home = () => {
       id: Math.random().toString(36).substring(7),
       productId: selectedProduct.id,
       name: selectedProduct.name,
-      price: selectedProduct.price,
-      deposit: selectedProduct.deposit,
+      price: selectedProduct.basePrice,
+      deposit: Math.round(selectedProduct.basePrice * 1.5),
       startDate,
       endDate,
       period
@@ -99,28 +83,35 @@ const Home = () => {
 
       <section className="featured-section">
         <h2 className="section-title">Available Equipment</h2>
-        <div className="product-grid">
-          {filteredProducts.map((product) => (
-            <div 
-              key={product.id} 
-              className="product-card glass-panel"
-              onClick={() => setSelectedProduct(product)}
-            >
-              <div className="product-image-placeholder"></div>
-              <div className="product-info">
-                <span className="product-category">{product.category}</span>
-                <h3>{product.name}</h3>
-                <div className="product-price">
-                  <span className="price-amount">${product.price}</span>
-                  <span className="price-period">/day</span>
+        
+        {loading ? (
+          <p>Loading catalog...</p>
+        ) : (
+          <div className="product-grid">
+            {filteredProducts.map((product) => (
+              <div 
+                key={product.id} 
+                className="product-card glass-panel"
+                onClick={() => setSelectedProduct(product)}
+              >
+                <div className="product-image-placeholder text-xs flex items-center justify-center text-gray-400">
+                  Image
+                </div>
+                <div className="product-info">
+                  <h3>{product.name}</h3>
+                  <p className="product-category text-xs mb-1">{product.description}</p>
+                  <div className="product-price">
+                    <span className="price-amount">₹{product.basePrice}</span>
+                    <span className="price-period">/day</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {filteredProducts.length === 0 && (
-            <p className="no-results-msg">No equipment matches your search query.</p>
-          )}
-        </div>
+            ))}
+            {filteredProducts.length === 0 && (
+              <p className="no-results-msg">No equipment matches your search query.</p>
+            )}
+          </div>
+        )}
       </section>
 
       {selectedProduct && (
@@ -129,17 +120,17 @@ const Home = () => {
             <button className="close-btn" onClick={() => setSelectedProduct(null)}>
               <X size={20} />
             </button>
-            <span className="product-category">{selectedProduct.category}</span>
+            <span className="product-category">{selectedProduct.categoryId}</span>
             <h2 className="text-gradient mt-2">{selectedProduct.name}</h2>
             <p className="product-description mt-4">{selectedProduct.description}</p>
             
             <div className="modal-price-box mt-4">
               <div>
-                <span className="modal-price-amount">${selectedProduct.price}</span>
+                <span className="modal-price-amount">₹{selectedProduct.basePrice}</span>
                 <span className="modal-price-period">/day</span>
               </div>
               <div className="modal-deposit-amount">
-                Security Deposit Hold: <strong>${selectedProduct.deposit}</strong>
+                Security Deposit Hold: <strong>₹{Math.round(selectedProduct.basePrice * 1.5)}</strong>
               </div>
             </div>
 

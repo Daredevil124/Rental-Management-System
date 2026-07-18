@@ -1,27 +1,42 @@
-import './Login.css';
-import { ArrowRight, User, Lock } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
+import './Login.css';
+import { ArrowRight, User, Lock, AlertCircle } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { authApi } from '../../api/auth';
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const isEmailAdmin = email.toLowerCase().includes('admin');
-    const userRole = isEmailAdmin ? 'ADMIN' : 'CUSTOMER';
-    const userName = isEmailAdmin ? 'Admin User' : 'Jane Doe';
-    
-    localStorage.setItem('user', JSON.stringify({ email, role: userRole, name: userName }));
-    window.dispatchEvent(new Event('local-storage-update'));
-    
-    if (userRole === 'ADMIN') {
-      navigate('/admin');
-    } else {
-      navigate('/');
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await authApi.login({ email, password });
+      
+      if (response?.data?.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        window.dispatchEvent(new Event('local-storage-update'));
+        
+        // Redirect based on role
+        if (response.data.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      } else {
+        setError('Invalid credentials received from server');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Invalid User ID or Password.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,7 +47,14 @@ const Login = () => {
           <h2 className="text-gradient">Welcome Back</h2>
           <p className="login-subtitle">Sign in to your account to continue</p>
         </div>
- 
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg flex items-center gap-2 mb-4 text-sm">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
             <label>Email Address</label>
@@ -40,7 +62,11 @@ const Login = () => {
               <User size={18} className="input-icon" />
               <input 
                 type="email" 
+<<<<<<< HEAD
                 placeholder="admin@rentops.com or jane@example.com" 
+=======
+                placeholder="admin@rentops.com" 
+>>>>>>> b6da2f0b5324f412a8215513c151b6b9caddd863
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required 
@@ -66,11 +92,17 @@ const Login = () => {
             <label className="checkbox-label">
               <input type="checkbox" /> Remember me
             </label>
-            <a href="#" className="forgot-password">Forgot Password?</a>
+            <Link to="/reset-password" className="forgot-password">Forgot Password?</Link>
           </div>
 
-          <button type="submit" className="btn-primary w-full justify-center mt-4">
-            Sign In <ArrowRight size={18} />
+          <button 
+            type="submit" 
+            className="btn-primary w-full justify-center mt-4"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : (
+              <>Sign In <ArrowRight size={18} /></>
+            )}
           </button>
 
           <p className="secure-payment-note">
