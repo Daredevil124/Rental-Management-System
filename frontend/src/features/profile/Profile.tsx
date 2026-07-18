@@ -1,18 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import './Profile.css';
-import { User as UserIcon, MapPin, CreditCard } from 'lucide-react';
-import { authApi } from '../../api/auth';
-import type { User } from '../../types/api';
+import { User, MapPin, CreditCard, Camera, Plus, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Profile = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await authApi.getMe();
-        setUser(res.data as User);
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
