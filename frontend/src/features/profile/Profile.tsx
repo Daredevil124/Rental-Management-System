@@ -1,17 +1,44 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './Profile.css';
 import { User, MapPin, CreditCard, Camera, Plus, X } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { authApi } from '../../api/auth';
+import type { User as UserType } from '../../types/api';
 
 const Profile = () => {
-  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await authApi.getMe();
+        setUser(res.data as UserType);
+      } catch (err) {
+        console.error('Failed to fetch user', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
   
   // Address State
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addresses, setAddresses] = useState<any[]>(user?.addresses || []);
   const [newAddress, setNewAddress] = useState({ label: '', line1: '', city: '' });
+
+  // Update addresses when user loads
+  useEffect(() => {
+    if (user?.addresses) {
+      setAddresses(user.addresses);
+    }
+  }, [user]);
+
+  if (loading) {
+    return <div className="p-8 text-center text-white">Loading profile...</div>;
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
