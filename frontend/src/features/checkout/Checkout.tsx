@@ -14,7 +14,7 @@ const Checkout = () => {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const res = await rentalsApi.getCart();
+        const res: any = await rentalsApi.getCart();
         setCart(res.data);
       } catch (err) {
         console.error('Failed to fetch cart', err);

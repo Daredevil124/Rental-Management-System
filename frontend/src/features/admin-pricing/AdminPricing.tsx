@@ -1,118 +1,168 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './AdminPricing.css';
-import { Plus, Edit2, X, Trash2 } from 'lucide-react';
+import { Plus, Edit2, X, Trash2, Calendar, Star } from 'lucide-react';
+import { adminApi } from '../../api/admin';
 
 const AdminPricing = () => {
   const [showRuleModal, setShowRuleModal] = useState(false);
-  const [newRule, setNewRule] = useState({ category: 'rental-period', label: '', details: '' });
+  const [newPriceList, setNewPriceList] = useState({ 
+    name: '', 
+    description: '', 
+    isDefault: false, 
+    startsAt: '', 
+    endsAt: '' 
+  });
 
-  const [rentalPeriods, setRentalPeriods] = useState([
-    { id: 1, label: 'Daily', details: '24 hours' },
-    { id: 2, label: 'Weekly', details: '7 days (15% discount)' },
-    { id: 3, label: 'Monthly', details: '30 days (30% discount)' },
-  ]);
+  const [priceLists, setPriceLists] = useState<any[]>([]);
 
-  const [depositRules, setDepositRules] = useState([
-    { id: 1, label: 'Default', details: 'Fixed ₹2000 per order' },
-    { id: 2, label: 'High-Value Item', details: '20% of product value' },
-  ]);
+  useEffect(() => {
+    fetchPriceLists();
+  }, []);
 
-  const handleSaveRule = () => {
-    if (newRule.label && newRule.details) {
-      if (newRule.category === 'rental-period') {
-        setRentalPeriods([...rentalPeriods, { id: Date.now(), label: newRule.label, details: newRule.details }]);
+  const fetchPriceLists = async () => {
+    try {
+      const res: any = await adminApi.getPriceLists();
+      if (res.data && res.data.length > 0) {
+        setPriceLists(res.data);
       } else {
-        setDepositRules([...depositRules, { id: Date.now(), label: newRule.label, details: newRule.details }]);
+        // Fallback if empty to show UI
+        setPriceLists([
+          { id: '1', name: 'Standard Pricing', description: 'Base default rates for all products', isDefault: true, startsAt: null, endsAt: null, status: 'Active' },
+        ]);
       }
-      setShowRuleModal(false);
-      setNewRule({ category: 'rental-period', label: '', details: '' });
+    } catch (err) {
+      console.error('Failed to fetch price lists', err);
     }
   };
 
+  const handleSavePriceList = async () => {
+    if (newPriceList.name) {
+      try {
+        await adminApi.createPriceList({
+          name: newPriceList.name,
+          description: newPriceList.description,
+          isDefault: newPriceList.isDefault,
+          startsAt: newPriceList.startsAt ? new Date(newPriceList.startsAt).toISOString() : null,
+          endsAt: newPriceList.endsAt ? new Date(newPriceList.endsAt).toISOString() : null,
+          isActive: true
+        });
+        
+        await fetchPriceLists();
+        setShowRuleModal(false);
+        setNewPriceList({ name: '', description: '', isDefault: false, startsAt: '', endsAt: '' });
+      } catch (err) {
+        console.error('Failed to create price list', err);
+        alert('Failed to save price list');
+      }
+    }
+  };
+
+  const deletePriceList = (id: number) => {
+    setPriceLists(priceLists.filter(p => p.id !== id));
+  };
+
   return (
-    <div className="admin-pricing-container animate-fade-in relative">
+    <div className="admin-page animate-fade-in relative">
       <div className="admin-page-header">
         <div>
-          <h1 className="text-gradient">Pricing & Rules</h1>
-          <p className="subtitle">Manage price lists, rental periods, and penalty rules</p>
+          <h1 className="text-gradient">Price Lists & Seasons</h1>
+          <p className="subtitle">Manage default pricing, seasonal sales, and custom tiers</p>
         </div>
         <button className="btn-primary" onClick={() => setShowRuleModal(true)}>
-          <Plus size={18} /> New Rule
+          <Plus size={18} /> Create Price List
         </button>
       </div>
 
-      <div className="pricing-grid mt-4">
-        
-        <div className="pricing-card glass-panel">
-          <div className="pricing-header">
-            <h3>Rental Periods</h3>
-            <button className="icon-btn edit-btn"><Edit2 size={16} /></button>
-          </div>
-          <ul className="rule-list">
-            {rentalPeriods.map(period => (
-              <li key={period.id} className="flex justify-between items-center group">
-                <div><strong>{period.label}:</strong> {period.details}</div>
-                <button className="text-gray-500 hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setRentalPeriods(rentalPeriods.filter(p => p.id !== period.id))}><Trash2 size={14}/></button>
-              </li>
-            ))}
-          </ul>
+      <div className="mt-6">
+        <div className="glass-panel overflow-hidden">
+          <table className="admin-table w-full text-left">
+            <thead>
+              <tr>
+                <th>Price List Name</th>
+                <th>Description</th>
+                <th>Time Period</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {priceLists.map((list) => (
+                <tr key={list.id} className={list.isDefault ? 'bg-indigo-900/10' : ''}>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-white">{list.name}</span>
+                      {list.isDefault && <span className="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border border-indigo-500/30"><Star size={12} fill="currentColor" /> Default</span>}
+                    </div>
+                  </td>
+                  <td className="text-gray-400">{list.description}</td>
+                  <td>
+                    {list.startsAt || list.endsAt ? (
+                      <div className="flex items-center gap-1 text-sm text-gray-300">
+                        <Calendar size={14} className="text-indigo-400" />
+                        {list.startsAt ? list.startsAt : 'Always'} - {list.endsAt ? list.endsAt : 'Forever'}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500 text-sm">Permanent (No expiry)</span>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`status-badge ${list.status === 'Active' ? 'status-active' : 'status-warning'}`}>
+                      {list.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button className="icon-btn edit-btn" title="Edit"><Edit2 size={16} /></button>
+                      {!list.isDefault && (
+                        <button className="icon-btn archive-btn hover:text-danger" onClick={() => deletePriceList(list.id)} title="Delete"><Trash2 size={16} /></button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        <div className="pricing-card glass-panel">
-          <div className="pricing-header">
-            <h3>Deposit Rules</h3>
-            <button className="icon-btn edit-btn"><Edit2 size={16} /></button>
-          </div>
-          <ul className="rule-list">
-            {depositRules.map(rule => (
-              <li key={rule.id} className="flex justify-between items-center group">
-                <div><strong>{rule.label}:</strong> {rule.details}</div>
-                <button className="text-gray-500 hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setDepositRules(depositRules.filter(r => r.id !== rule.id))}><Trash2 size={14}/></button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="pricing-card glass-panel">
-          <div className="pricing-header">
-            <h3>Late Fee Rules</h3>
-            <button className="icon-btn edit-btn"><Edit2 size={16} /></button>
-          </div>
-          <ul className="rule-list">
-            <li><strong>Grace Period:</strong> 2 hours</li>
-            <li><strong>Penalty:</strong> ₹500 / day</li>
-            <li><strong>Max Cap:</strong> 100% of product value</li>
-          </ul>
-        </div>
-
       </div>
 
       {showRuleModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="glass-panel p-6 w-full max-w-md animate-fade-in border border-indigo-500/30">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">Create New Rule</h2>
+          <div className="glass-panel p-6 w-full max-w-lg animate-fade-in border border-indigo-500/30">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+              <h2 className="text-xl font-semibold text-white">Create Price List</h2>
               <button onClick={() => setShowRuleModal(false)} className="text-gray-400 hover:text-white"><X size={20}/></button>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-400 text-sm mb-1">Rule Category</label>
-                <select className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newRule.category} onChange={e => setNewRule({...newRule, category: e.target.value})}>
-                  <option value="rental-period">Rental Period</option>
-                  <option value="deposit">Deposit Rule</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-400 text-sm mb-1">Rule Label (e.g. "Weekend")</label>
-                <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newRule.label} onChange={e => setNewRule({...newRule, label: e.target.value})} placeholder="Rule Name" />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-sm mb-1">Details / Value</label>
-                <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newRule.details} onChange={e => setNewRule({...newRule, details: e.target.value})} placeholder="e.g. 48 hours (10% discount)" />
+                <label className="block text-gray-400 text-sm mb-1">Price List Name</label>
+                <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500 transition-colors" value={newPriceList.name} onChange={e => setNewPriceList({...newPriceList, name: e.target.value})} placeholder="e.g. Summer Sale 2026" />
               </div>
               
-              <button className="btn-primary w-full mt-4 justify-center" onClick={handleSaveRule}>Save Rule</button>
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Description</label>
+                <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500 transition-colors" value={newPriceList.description} onChange={e => setNewPriceList({...newPriceList, description: e.target.value})} placeholder="Brief context about this pricing tier" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1">Starts At (Optional)</label>
+                  <input type="date" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newPriceList.startsAt} onChange={e => setNewPriceList({...newPriceList, startsAt: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1">Ends At (Optional)</label>
+                  <input type="date" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newPriceList.endsAt} onChange={e => setNewPriceList({...newPriceList, endsAt: e.target.value})} />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" className="w-4 h-4 rounded border-gray-700 bg-gray-900 text-indigo-500 focus:ring-indigo-500" checked={newPriceList.isDefault} onChange={e => setNewPriceList({...newPriceList, isDefault: e.target.checked})} />
+                  <span className="text-gray-300 text-sm group-hover:text-white transition-colors">Set as Default Price List (Applicable to all products by default)</span>
+                </label>
+              </div>
+              
+              <button className="btn-primary w-full mt-6 justify-center py-3" onClick={handleSavePriceList}>Save Price List</button>
             </div>
           </div>
         </div>

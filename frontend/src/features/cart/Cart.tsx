@@ -12,7 +12,7 @@ const Cart = () => {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const res = await rentalsApi.getCart();
+        const res: any = await rentalsApi.getCart();
         setCart(res.data);
       } catch (err) {
         console.error('Failed to fetch cart', err);
@@ -26,7 +26,7 @@ const Cart = () => {
   const handleRemove = async (itemId: string) => {
     try {
       await rentalsApi.removeCartItem(itemId);
-      const res = await rentalsApi.getCart();
+      const res: any = await rentalsApi.getCart();
       setCart(res.data);
     } catch (err) {
       console.error('Failed to remove item', err);

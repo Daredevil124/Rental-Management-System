@@ -21,7 +21,7 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="admin-users-container animate-fade-in relative">
+    <div className="admin-page animate-fade-in relative">
       <div className="admin-page-header">
         <div>
           <h1 className="text-gradient">User Records</h1>

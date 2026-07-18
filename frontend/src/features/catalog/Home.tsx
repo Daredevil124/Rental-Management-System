@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './Home.css';
-import { Calendar, Filter, ArrowRight, X } from 'lucide-react';
+import { Filter, ArrowRight, X } from 'lucide-react';
 import { productsApi } from '../../api/products';
 import type { Product } from '../../types/api';
 

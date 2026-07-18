@@ -323,6 +323,8 @@ export const confirmPickup = async (req: Request, res: Response) => {
   }
 };
 
+import { calculateLateFee } from '../../utils/lateFeeCalculator.js';
+
 export const getReturns = async (req: Request, res: Response) => {
   try {
     const count = await prisma.returnTask.count();
@@ -339,7 +341,8 @@ export const getReturns = async (req: Request, res: Response) => {
               include: {
                 product: {
                   include: {
-                    accessories: true
+                    accessories: true,
+                    lateFeeRules: true
                   }
                 },
                 inventoryUnit: true
@@ -371,36 +374,55 @@ export const confirmReturn = async (req: Request, res: Response) => {
       return;
     }
 
-    const order = await prisma.rentalOrder.findUnique({
+    const rentalOrder = await prisma.rentalOrder.findUnique({
       where: { id: rentalId },
-      include: { items: true }
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { lateFeeRules: true }
+            }
+          }
+        }
+      }
     });
 
-    if (!order) {
+    if (!rentalOrder) {
       res.status(404).json({ error: 'Rental order not found' });
       return;
     }
 
-    // Determine late fee
+    let totalLateFee = 0;
     let lateDays = 0;
-    let calculatedLateFee = 0;
-    const item = order.items[0];
-    if (item && item.endsAt < new Date()) {
-      lateDays = Math.ceil((Date.now() - item.endsAt.getTime()) / 86400000);
-      if (lateDays > 0) {
-        calculatedLateFee = lateDays * 500; // Default ₹500/day
+    const returnedAt = new Date();
+
+    for (const item of rentalOrder.items) {
+      if (item.endsAt < returnedAt) {
+        const rule = item.product.lateFeeRules.find(r => r.isActive);
+        if (rule) {
+          const fee = calculateLateFee(item.endsAt, returnedAt, {
+            unit: rule.unit,
+            amount: Number(rule.amount),
+            gracePeriodMinutes: rule.gracePeriodMinutes,
+            maxFee: rule.maxFee ? Number(rule.maxFee) : null
+          });
+          totalLateFee += fee;
+          lateDays = Math.ceil((returnedAt.getTime() - item.endsAt.getTime()) / 86400000);
+        }
       }
     }
 
-    const totalDeductions = Number(calculatedLateFee) + Number(damageFeeAmount);
-    const originalDeposit = Number(order.depositTotal);
-    const refundAmount = Math.max(0, originalDeposit - totalDeductions);
+    const missingAccessoriesPenalty = (missingAccessories?.length || 0) * 200; // ₹200 fee per missing accessory
+    const totalDeductions = totalLateFee + Number(damageFeeAmount) + missingAccessoriesPenalty;
+    const originalDeposit = Number(rentalOrder.depositTotal) || 0;
+    let refundAmount = originalDeposit - totalDeductions;
+    if (refundAmount < 0) refundAmount = 0;
 
     await prisma.$transaction(async (tx) => {
       // 1. Update task to completed
       await tx.returnTask.update({
         where: { id: task.id },
-        data: { status: 'COMPLETED', confirmedAt: new Date() }
+        data: { status: 'COMPLETED', confirmedAt: returnedAt }
       });
 
       // 2. Set order status to RETURNED
@@ -408,13 +430,15 @@ export const confirmReturn = async (req: Request, res: Response) => {
         where: { id: rentalId },
         data: {
           status: 'RETURNED',
-          returnedAt: new Date(),
-          lateFeeTotal: calculatedLateFee,
-          damageFeeTotal: damageFeeAmount
+          returnedAt,
+          lateFeeTotal: totalLateFee,
+          damageFeeTotal: damageFeeAmount,
+          grandTotal: { increment: totalLateFee }
         }
       });
 
       // 3. Create inspection report
+      const item = rentalOrder.items[0];
       if (item) {
         const inspection = await tx.returnInspection.create({
           data: {
@@ -464,29 +488,72 @@ export const confirmReturn = async (req: Request, res: Response) => {
         }
       }
 
-      // 6. Deposit settlement
-      await tx.depositTransaction.create({
-        data: {
-          rentalOrderId: rentalId,
-          amount: refundAmount,
-          type: 'REFUND',
-          status: refundAmount === originalDeposit ? 'REFUNDED' : 'PARTIALLY_DEDUCTED'
-        }
-      });
+      // 6. Record Deposit Transactions
+      if (totalDeductions > 0) {
+        await tx.depositTransaction.create({
+          data: {
+            rentalOrderId: rentalId,
+            type: 'DEDUCTION',
+            status: 'PARTIALLY_DEDUCTED',
+            amount: totalDeductions <= originalDeposit ? totalDeductions : originalDeposit,
+            reason: 'Late Return or Damage Penalty Deduction'
+          }
+        });
+      }
+
+      if (refundAmount > 0) {
+        await tx.depositTransaction.create({
+          data: {
+            rentalOrderId: rentalId,
+            type: 'REFUND',
+            status: 'REFUNDED',
+            amount: refundAmount,
+            reason: 'Remaining Deposit Refunded'
+          }
+        });
+      }
 
       // Update HELD transaction status
       await tx.depositTransaction.updateMany({
         where: { rentalOrderId: rentalId, type: 'HOLD' },
         data: { status: refundAmount === originalDeposit ? 'REFUNDED' : 'PARTIALLY_DEDUCTED' }
       });
+
+      // 7. Generate/Update Invoice automatically
+      const existingInvoice = await tx.invoice.findFirst({
+        where: { rentalOrderId: rentalId }
+      });
+
+      if (existingInvoice) {
+        await tx.invoice.update({
+          where: { id: existingInvoice.id },
+          data: {
+            lateFeeAmount: totalLateFee,
+            damageFeeAmount: damageFeeAmount,
+            total: { increment: totalLateFee },
+            updatedAt: new Date()
+          }
+        });
+      } else {
+        await tx.invoice.create({
+          data: {
+            invoiceNumber: `INV-${Date.now()}`,
+            rentalOrderId: rentalId,
+            lateFeeAmount: totalLateFee,
+            damageFeeAmount: damageFeeAmount,
+            total: Number(rentalOrder.grandTotal) + totalLateFee,
+            status: 'ISSUED'
+          }
+        });
+      }
     });
 
     res.json({
       success: true,
-      message: `Return processed for order ${order.orderNumber}`,
+      message: `Return processed for order ${rentalOrder.orderNumber}`,
       data: {
         lateDays,
-        lateFee: calculatedLateFee,
+        lateFee: totalLateFee,
         damageFee: damageFeeAmount,
         refundAmount
       }
