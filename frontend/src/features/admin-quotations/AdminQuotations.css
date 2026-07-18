@@ -1,0 +1,8 @@
+.admin-quotations-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.status-pending { background-color: hsla(30, 100%, 50%, 0.15); color: hsl(var(--warning)); }
+.status-accepted { background-color: hsla(150, 60%, 45%, 0.15); color: hsl(var(--success)); }

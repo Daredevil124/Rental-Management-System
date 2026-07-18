@@ -1,0 +1,66 @@
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .profile-grid .profile-card:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.profile-card {
+  padding: 1.5rem;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, hsl(var(--bg-accent)), hsl(280, 85%, 60%));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.profile-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-title h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.saved-address, .saved-payment {
+  padding: 1rem;
+  border: 1px solid hsla(var(--border-subtle), 0.5);
+  border-radius: 8px;
+  background-color: hsla(var(--bg-card-hover), 0.3);
+}

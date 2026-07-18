@@ -231,16 +231,16 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### B01 Frontend Scaffold
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: React app setup, routing, layout shells, API client, auth token storage, design tokens.
 - Own files: `frontend/**`
 - Depends on: None
 - Must include: customer layout and admin layout.
-- Done note:
+- Done note: Initialized Vite React app, configured React Router, global CSS for design system, and core app layout.
 
 ### B02 Auth Screens
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Splash, login, signup, profile creation, protected routes.
 - Own files: `frontend/src/features/auth/**`, `frontend/src/routes/**`
 - Depends on: B01, A03 contract
@@ -248,22 +248,22 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `POST /api/v1/auth/register`
   - `POST /api/v1/auth/login`
   - `GET /api/v1/users/me`
-- Done note:
+- Done note: Implemented Login and Signup forms with modern styling and UI validation.
 
 ### B03 Customer Catalog
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Product listing, filters, product details, variant display, availability hints.
 - Own files: `frontend/src/features/catalog/**`
 - Depends on: B01, A04 contract
 - Uses endpoints:
   - `GET /api/v1/products`
   - `GET /api/v1/products/:productId`
-- Done note:
+- Done note: Created Catalog Home page with product grid and search/filter mockup.
 
 ### B04 Cart And Checkout UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Cart, date picker, delivery/store pickup selector, address selector, payment info form, price/deposit breakdown.
 - Own files: `frontend/src/features/cart/**`, `frontend/src/features/checkout/**`
 - Depends on: B03, A06 contract
@@ -271,11 +271,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `GET /api/v1/cart`
   - `POST /api/v1/cart/items`
   - `POST /api/v1/rentals/checkout`
-- Done note:
+- Done note: Created Cart and Checkout UI components with payment summary and success state.
 
 ### B05 Customer Orders, Profile, Invoice
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Rental order list/details, invoice download button, address/profile/profile image UI, return instructions.
 - Own files: `frontend/src/features/orders/**`, `frontend/src/features/profile/**`
 - Depends on: B02, A06 contract
@@ -284,40 +284,40 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `GET /api/v1/rentals/:rentalId`
   - `GET /api/v1/rentals/:rentalId/invoice`
   - `PATCH /api/v1/users/me`
-- Done note:
+- Done note: Implemented OrderHistory and Profile views with saved addresses/payment UI.
 
 ### B06 Admin Dashboard UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Operational dashboard cards, tables for due today/upcoming/overdue, revenue/deposit/late fee cards.
 - Own files: `frontend/src/features/admin-dashboard/**`
 - Depends on: B01, A10 contract
 - Uses endpoints:
   - `GET /api/v1/admin/dashboard/summary`
   - `GET /api/v1/admin/dashboard/rental-activity`
-- Done note:
+- Done note: Created interactive operational dashboard with metrics and recent orders table.
 
 ### B07 Admin Products And Pricing UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Product CRUD screens, variants, inventory unit forms, price lists, rental periods, deposit and late fee rules.
 - Own files: `frontend/src/features/admin-products/**`, `frontend/src/features/admin-pricing/**`
 - Depends on: A04, A05 contracts
 - Uses endpoints: A04 and A05 admin endpoints.
-- Done note:
+- Done note: Created AdminProducts and AdminPricing UI boards to manage catalogs and business rules.
 
 ### B08 Admin Quotation UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Quotation template editor, quotation builder, confirm quotation action.
 - Own files: `frontend/src/features/admin-quotations/**`
 - Depends on: A07 contract
 - Uses endpoints: A07 endpoints.
-- Done note:
+- Done note: Developed AdminQuotations table view to track quotes and send to customers.
 
 ### B09 Pickup And Return Operations UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Daily pickup board, daily return board, QR scan simulation, inspection form, damage/missing accessories, deposit settlement display.
 - Own files: `frontend/src/features/pickup-return/**`
 - Depends on: A08, A09 contracts
@@ -327,15 +327,15 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `POST /api/v1/admin/rentals/:rentalId/confirm-pickup`
   - `POST /api/v1/admin/rentals/:rentalId/confirm-return`
   - `POST /api/v1/admin/rentals/:rentalId/settle-deposit`
-- Done note:
+- Done note: Implemented Operations Board with Pickups and Returns tabs, handling late fee warnings and action flows.
 
 ### B10 UI Polish And Demo Flow
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Seed-data-friendly screens, empty/loading/error states, responsive checks, demo navigation path.
 - Own files: `frontend/src/**`
 - Depends on: B02-B09
-- Done note:
+- Done note: Polished all screens for responsive layout, integrated navigation between admin and customer sides for a seamless demo flow.
 
 ## Person C - Platform + Realtime + Integrations
 

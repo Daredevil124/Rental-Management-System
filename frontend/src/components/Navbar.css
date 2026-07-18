@@ -1,0 +1,106 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-radius: 0 0 16px 16px;
+  border-top: none;
+  margin-bottom: 2rem;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-icon {
+  color: hsl(var(--bg-accent));
+}
+
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+.font-bold {
+  font-weight: 700;
+}
+.text-xl {
+  font-size: 1.5rem;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--text-secondary));
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover, .nav-link.active {
+  color: hsl(var(--text-primary));
+}
+
+.cart-btn {
+  position: relative;
+  color: hsl(var(--text-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.cart-btn:hover {
+  background-color: hsla(var(--bg-accent), 0.1);
+  color: hsl(var(--text-primary));
+}
+
+.cart-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: hsl(var(--bg-accent));
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transform: translate(25%, -25%);
+}
+
+.user-profile {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, hsl(var(--bg-card-hover)), hsl(var(--bg-card)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--text-secondary));
+  cursor: pointer;
+  border: 1px solid hsla(var(--border-subtle), 0.5);
+  transition: border-color var(--transition-fast);
+}
+
+.user-profile:hover {
+  border-color: hsl(var(--bg-accent));
+  color: hsl(var(--text-primary));
+}
