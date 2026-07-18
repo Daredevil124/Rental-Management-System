@@ -74,6 +74,22 @@ const Profile = () => {
     setError('');
     setSuccess('');
 
+    if (fullName.trim().length < 2) {
+      const msg = 'Full Name must be at least 2 characters long.';
+      setError(msg);
+      alert(msg);
+      setSaving(false);
+      return;
+    }
+
+    if (phone && !/^\d{10}$/.test(phone.replace(/\s+/g, ''))) {
+      const msg = 'Phone number must be exactly 10 digits.';
+      setError(msg);
+      alert(msg);
+      setSaving(false);
+      return;
+    }
+
     try {
       const response = await authApi.updateMe({ fullName, phone });
       const updatedUser = (response as any).data;
@@ -97,6 +113,37 @@ const Profile = () => {
 
   const handleSaveAddress = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!editAddress.label.trim()) {
+      const msg = 'Address Label is required.';
+      alert(msg);
+      return;
+    }
+
+    if (!editAddress.line1.trim()) {
+      const msg = 'Street Address Line 1 is required.';
+      alert(msg);
+      return;
+    }
+
+    if (!editAddress.city.trim()) {
+      const msg = 'City is required.';
+      alert(msg);
+      return;
+    }
+
+    if (!/^\d{6}$/.test(editAddress.postalCode)) {
+      const msg = 'Postal code must be exactly 6 digits.';
+      alert(msg);
+      return;
+    }
+
+    if (!editAddress.state.trim()) {
+      const msg = 'State is required.';
+      alert(msg);
+      return;
+    }
+
     setAddress(editAddress);
     localStorage.setItem('user_address', JSON.stringify(editAddress));
     setSuccess('Address updated successfully!');
@@ -107,11 +154,35 @@ const Profile = () => {
 
   const handleSavePayment = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate updating last4 based on what was entered
-    const cleanCard = editPayment.cardNumber || '';
-    const last4 = cleanCard.length >= 4 ? cleanCard.slice(-4) : '4242';
+
+    if (!editPayment.cardholder.trim()) {
+      const msg = 'Cardholder name is required.';
+      alert(msg);
+      return;
+    }
+
+    const cleanCard = (editPayment.cardNumber || '').replace(/[\s-]/g, '');
+    if (!/^\d{16}$/.test(cleanCard)) {
+      const msg = 'Card number must be exactly 16 digits.';
+      alert(msg);
+      return;
+    }
+
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(editPayment.expiry)) {
+      const msg = 'Expiry date must be in MM/YY format.';
+      alert(msg);
+      return;
+    }
+
+    if (!/^\d{3}$/.test(editPayment.cvv)) {
+      const msg = 'CVV must be exactly 3 digits.';
+      alert(msg);
+      return;
+    }
+
+    const last4 = cleanCard.slice(-4);
     const finalPayment = {
-      cardType: editPayment.cardNumber?.startsWith('5') ? 'Mastercard' : 'Visa',
+      cardType: cleanCard.startsWith('5') ? 'Mastercard' : 'Visa',
       last4,
       expiry: editPayment.expiry,
       cardholder: editPayment.cardholder

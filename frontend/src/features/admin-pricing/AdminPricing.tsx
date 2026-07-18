@@ -36,8 +36,19 @@ const AdminPricing = () => {
   };
 
   const handleSavePriceList = async () => {
-    if (newPriceList.name) {
-      try {
+    if (!newPriceList.name.trim()) {
+      alert('Price List Name is required.');
+      return;
+    }
+
+    if (newPriceList.startsAt && newPriceList.endsAt) {
+      if (new Date(newPriceList.endsAt) < new Date(newPriceList.startsAt)) {
+        alert('Ends At date cannot be before Starts At date.');
+        return;
+      }
+    }
+
+    try {
         await adminApi.createPriceList({
           name: newPriceList.name,
           description: newPriceList.description,
@@ -54,7 +65,6 @@ const AdminPricing = () => {
         console.error('Failed to create price list', err);
         alert('Failed to save price list');
       }
-    }
   };
 
   const deletePriceList = (id: number) => {
