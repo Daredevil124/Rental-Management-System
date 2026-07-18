@@ -8,8 +8,7 @@ import {
   ArrowUpRight, 
   ArrowDownLeft, 
   ShieldCheck, 
-  Receipt,
-  Users
+  Receipt
 } from 'lucide-react';
 import { adminApi } from '../../api/admin';
 
@@ -21,11 +20,10 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const [summaryRes, activityRes] = await Promise.all([
-          adminApi.getDashboardSummary(),
-          adminApi.getRentalActivity()
-        ]);
-        setSummary(summaryRes.data?.data);
+        const statsRes: any = await adminApi.getDashboardSummary();
+        setSummary(statsRes.data?.data);
+        
+        const activityRes: any = await adminApi.getRentalActivity();
         setActivities(activityRes.data?.data || []);
       } catch (err) {
         console.error('Failed to fetch dashboard data', err);

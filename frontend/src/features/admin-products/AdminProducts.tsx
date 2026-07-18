@@ -11,10 +11,9 @@ const AdminProducts = () => {
   ]);
 
   const [newProduct, setNewProduct] = useState({ 
-    sku: '', name: '', cat: '', price: '', stock: 0,
-    depositRule: 'Fixed ₹2000 per order',
-    lateFeeRule: '₹500 / day',
-    rentalPeriods: 'Daily, Weekly'
+    sku: '', name: '', cat: 'Photography', price: '', stock: 0, 
+    depositRule: '', lateFeeRule: '', rentalPeriods: '',
+    lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000
   });
 
   const handleAddProduct = () => {
@@ -25,7 +24,8 @@ const AdminProducts = () => {
         sku: '', name: '', cat: '', price: '', stock: 0,
         depositRule: 'Fixed ₹2000 per order',
         lateFeeRule: '₹500 / day',
-        rentalPeriods: 'Daily, Weekly'
+        rentalPeriods: 'Daily, Weekly',
+        lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000
       });
     }
   };

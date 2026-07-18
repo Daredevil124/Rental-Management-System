@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Plus, Search, Settings, X, Send } from 'lucide-react';
+import { FileText, Plus, Search, Settings, Send } from 'lucide-react';
 import './AdminQuotations.css';
 
 const AdminQuotations = () => {

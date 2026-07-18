@@ -1,19 +1,26 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 class ApiError extends Error {
-  constructor(public status: number, public message: string, public data?: any) {
+  status: number;
+  data?: any;
+  constructor(status: number, message: string, data?: any) {
     super(message);
     this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
   }
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token');
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
   };
+
+  if (options.headers) {
+    Object.assign(headers, options.headers);
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
