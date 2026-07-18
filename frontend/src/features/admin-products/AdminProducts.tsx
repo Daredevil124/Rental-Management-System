@@ -6,11 +6,30 @@ import { productsApi } from '../../api/products';
 
 const AdminProducts = () => {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [priceLists, setPriceLists] = useState<any[]>([]);
+  const [rentalPeriods, setRentalPeriods] = useState<any[]>([]);
+
+  const [editingProduct, setEditingProduct] = useState<any>(null);
 
   useEffect(() => {
     fetchProducts();
+    fetchMetadata();
   }, []);
+
+  const fetchMetadata = async () => {
+    try {
+      const [plRes, rpRes] = await Promise.all([
+        adminApi.getPriceLists(),
+        adminApi.getRentalPeriods()
+      ]);
+      setPriceLists(plRes.data || []);
+      setRentalPeriods(rpRes.data || []);
+    } catch (err) {
+      console.error('Failed to fetch pricing metadata', err);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -18,20 +37,20 @@ const AdminProducts = () => {
       if (res.data && res.data.length > 0) {
         // Map the backend data to our table structure
         const mappedProducts = res.data.map((p: any) => ({
-          sku: p.slug, // using slug as SKU for display if needed
+          id: p.id,
+          sku: p.slug, // using slug as SKU for display
           name: p.name,
           cat: p.category,
-          price: '₹5,000/day', // mock base for now
+          price: p.pricingRules?.[0]?.price ? `₹${p.pricingRules[0].price}/day` : '₹100/day',
           stock: p.variants?.reduce((acc: number, v: any) => acc + (v.inventoryUnits?.length || 0), 0) || 0,
-          depositRule: p.depositRules?.[0]?.amount || 'Fixed',
-          lateFeeRule: p.lateFeeRules?.[0]?.amount || '500',
-          variants: p.variants?.length || 0
+          depositRule: p.depositRules?.[0]?.amount ? `Fixed (₹${p.depositRules[0].amount})` : 'Fixed (₹0)',
+          lateFeeRule: p.lateFeeRules?.[0]?.amount ? `₹${p.lateFeeRules[0].amount}/${p.lateFeeRules[0].unit.toLowerCase()}` : '₹500/day',
+          variants: p.variants?.length || 0,
+          rawProduct: p
         }));
         setProducts(mappedProducts);
       } else {
-        setProducts([
-          { sku: 'CAM-PRO-01', name: 'Pro Camera Kit 1', cat: 'Photography', price: '₹4,500/day', stock: 5, depositRule: '20% of Value', lateFeeRule: '₹500/day', variants: 2 },
-        ]);
+        setProducts([]);
       }
     } catch (err) {
       console.error('Failed to fetch products', err);
@@ -77,36 +96,85 @@ const AdminProducts = () => {
         
         const productId = productRes.data.id;
 
-        // 2. Create Variants
+        // 2. Create Variants & Inventory Units
+        const createdVariants = [];
         for (const v of newProduct.variants) {
           if (v.sku) {
-            await adminApi.createVariant(productId, {
+            const variantRes: any = await adminApi.createVariant(productId, {
               sku: v.sku,
-              brand: v.brand,
-              manufacturer: v.manufacturer,
-              color: v.color,
-              size: v.size
+              brand: v.brand || 'Generic',
+              manufacturer: v.manufacturer || 'Generic',
+              color: v.color || 'Default',
+              size: v.size || 'Standard'
+            });
+            createdVariants.push(variantRes.data);
+          }
+        }
+
+        // Create Inventory Units
+        if (createdVariants.length > 0 && newProduct.stock > 0) {
+          const unitsPerVariant = Math.ceil(newProduct.stock / createdVariants.length);
+          let createdCount = 0;
+          for (const variant of createdVariants) {
+            for (let i = 0; i < unitsPerVariant && createdCount < newProduct.stock; i++) {
+              await adminApi.createInventoryUnit({
+                variantId: variant.id,
+                assetTag: `AST-${variant.sku}-${String(i + 1).padStart(3, '0')}`,
+                qrCode: `QR-${variant.sku}-${String(i + 1).padStart(3, '0')}`,
+                status: 'AVAILABLE',
+                condition: 'GOOD',
+                location: 'Warehouse A'
+              });
+              createdCount++;
+            }
+          }
+        }
+
+        // 3. Create Pricing Rules (Daily & Weekly)
+        const defaultPl = priceLists.find(pl => pl.isDefault) || priceLists[0];
+        const dailyPeriod = rentalPeriods.find(p => p.name === 'Daily');
+        const weeklyPeriod = rentalPeriods.find(p => p.name === 'Weekly');
+        
+        const parsedPrice = Number(newProduct.price.replace(/[^0-9.]/g, '')) || 500;
+
+        if (defaultPl?.id) {
+          if (dailyPeriod?.id) {
+            await adminApi.createPricingRule({
+              priceListId: defaultPl.id,
+              rentalPeriodId: dailyPeriod.id,
+              productId: productId,
+              price: parsedPrice
+            });
+          }
+          if (weeklyPeriod?.id) {
+            await adminApi.createPricingRule({
+              priceListId: defaultPl.id,
+              rentalPeriodId: weeklyPeriod.id,
+              productId: productId,
+              price: parsedPrice * 5 // default weekly multiplier
             });
           }
         }
 
-        // 3. Create Deposit Rule
+        // 4. Create Deposit Rule
         if (newProduct.depositAmount > 0) {
           await adminApi.createDepositRule({
             productId: productId,
             type: 'FIXED',
-            amount: newProduct.depositAmount
+            amount: newProduct.depositAmount,
+            priceListId: defaultPl?.id || null
           });
         }
 
-        // 4. Create Late Fee Rule
+        // 5. Create Late Fee Rule
         if (newProduct.lateFeeAmount > 0) {
           await adminApi.createLateFeeRule({
             productId: productId,
-            unit: newProduct.lateFeeUnit.toUpperCase(),
+            unit: newProduct.lateFeeUnit.toUpperCase() === 'HOURLY' ? 'HOURLY' : 'DAILY',
             amount: newProduct.lateFeeAmount,
             gracePeriodMinutes: newProduct.gracePeriod,
-            maxFee: newProduct.maxFee
+            maxFee: newProduct.maxFee,
+            priceListId: defaultPl?.id || null
           });
         }
         
@@ -121,8 +189,48 @@ const AdminProducts = () => {
           variants: [{ sku: '', brand: '', manufacturer: '', color: '', size: '' }]
         });
       } catch (err) {
-        console.error('Failed to create product and rules', err);
-        alert('Failed to save product completely');
+        console.error('Failed to create product completely', err);
+        alert('Failed to save product completely. Check that SKU is unique.');
+      }
+    }
+  };
+
+  const handleOpenEditModal = (prod: any) => {
+    setEditingProduct({
+      id: prod.id,
+      name: prod.name,
+      category: prod.cat,
+      description: prod.rawProduct?.description || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateProduct = async () => {
+    if (editingProduct && editingProduct.name) {
+      try {
+        await adminApi.updateProduct(editingProduct.id, {
+          name: editingProduct.name,
+          category: editingProduct.category,
+          description: editingProduct.description
+        });
+        await fetchProducts();
+        setShowEditModal(false);
+        setEditingProduct(null);
+      } catch (err) {
+        console.error('Failed to update product', err);
+        alert('Failed to update product details');
+      }
+    }
+  };
+
+  const handleArchiveProduct = async (productId: string) => {
+    if (confirm('Are you sure you want to archive this product? This will remove it from the customer storefront.')) {
+      try {
+        await adminApi.updateProduct(productId, { isActive: false });
+        await fetchProducts();
+      } catch (err) {
+        console.error('Failed to archive product', err);
+        alert('Failed to archive product');
       }
     }
   };
@@ -153,34 +261,55 @@ const AdminProducts = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((prod) => (
-              <tr key={prod.sku}>
-                <td><span className="sku-badge">{prod.sku}</span></td>
-                <td className="font-medium">{prod.name}</td>
-                <td>{prod.cat}</td>
-                <td>{prod.price}</td>
-                <td>
-                  <span className="text-xs bg-gray-800 text-indigo-300 px-2 py-1 rounded border border-gray-700 flex items-center gap-1 w-max">
-                    <Tag size={12} /> {prod.variants} Variant(s)
-                  </span>
-                </td>
-                <td>
-                  <span className={`status-badge ${prod.stock < 3 ? 'status-warning' : 'status-active'}`}>
-                    {prod.stock} units
-                  </span>
-                </td>
-                <td>
-                  <div className="action-buttons flex gap-2">
-                    <button className="icon-btn edit-btn" title="Edit Product"><Edit2 size={16} /></button>
-                    <button className="icon-btn archive-btn" title="Archive"><Archive size={16} /></button>
-                  </div>
+            {products.length > 0 ? (
+              products.map((prod) => (
+                <tr key={prod.sku}>
+                  <td><span className="sku-badge">{prod.sku}</span></td>
+                  <td className="font-medium">{prod.name}</td>
+                  <td>{prod.cat}</td>
+                  <td>{prod.price}</td>
+                  <td>
+                    <span className="text-xs bg-gray-800 text-indigo-300 px-2 py-1 rounded border border-gray-700 flex items-center gap-1 w-max">
+                      <Tag size={12} /> {prod.variants} Variant(s)
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${prod.stock < 2 ? 'status-warning' : 'status-active'}`}>
+                      {prod.stock} units
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons flex gap-2">
+                      <button 
+                        className="icon-btn edit-btn" 
+                        title="Edit Product"
+                        onClick={() => handleOpenEditModal(prod)}
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        className="icon-btn archive-btn" 
+                        title="Archive"
+                        onClick={() => handleArchiveProduct(prod.id)}
+                      >
+                        <Archive size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-gray-500">
+                  No active products found. Click "Add Product" to create one.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
+      {/* ADD PRODUCT MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 overflow-y-auto">
           <div className="glass-panel p-6 w-full max-w-3xl animate-fade-in border border-indigo-500/30 my-8">
@@ -190,7 +319,6 @@ const AdminProducts = () => {
             </div>
             
             <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-              
               <div>
                 <h3 className="text-lg font-medium text-indigo-400 mb-3 border-b border-gray-700 pb-2">Basic Info</h3>
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -209,8 +337,8 @@ const AdminProducts = () => {
                     <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.cat} onChange={e => setNewProduct({...newProduct, cat: e.target.value})} placeholder="e.g. Photography" />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Base Price</label>
-                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} placeholder="e.g. ₹5,000/day" />
+                    <label className="block text-gray-400 text-sm mb-1">Base Daily Price (₹)</label>
+                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} placeholder="e.g. 1500" />
                   </div>
                   <div>
                     <label className="block text-gray-400 text-sm mb-1">Initial Total Stock</label>
@@ -278,8 +406,6 @@ const AdminProducts = () => {
                         <select className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.lateFeeUnit || 'Daily'} onChange={e => setNewProduct({...newProduct, lateFeeUnit: e.target.value})}>
                           <option>Hourly</option>
                           <option>Daily</option>
-                          <option>Weekly</option>
-                          <option>Monthly</option>
                         </select>
                       </div>
                       <div>
@@ -298,13 +424,70 @@ const AdminProducts = () => {
                   </div>
                 </div>
               </div>
-
             </div>
             
             <div className="pt-4 border-t border-gray-700 mt-4">
               <button className="btn-primary w-full justify-center py-3" onClick={handleAddProduct}>Save Product & Variants</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PRODUCT DETAILS MODAL */}
+      {showEditModal && editingProduct && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="glass-panel p-6 w-full max-w-lg animate-fade-in border border-indigo-500/30">
+            <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+              <h2 className="text-xl font-semibold text-white">Edit Product Details</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white"><X size={20}/></button>
+            </div>
             
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Product Name</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" 
+                  value={editingProduct.name} 
+                  onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} 
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Category</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" 
+                  value={editingProduct.category} 
+                  onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} 
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Description</label>
+                <textarea 
+                  rows={4}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500 resize-none" 
+                  value={editingProduct.description} 
+                  onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} 
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-gray-700 mt-6 flex gap-3">
+              <button 
+                className="w-1/2 bg-gray-800 hover:bg-gray-700 text-white rounded py-2 transition-colors"
+                onClick={() => setShowEditModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="w-1/2 btn-primary justify-center py-2"
+                onClick={handleUpdateProduct}
+              >
+                Update Product
+              </button>
+            </div>
           </div>
         </div>
       )}

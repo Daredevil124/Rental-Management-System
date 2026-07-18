@@ -21,6 +21,7 @@ export const adminApi = {
   createPriceList: (data: any) => apiClient.post('/admin/price-lists', data),
   createLateFeeRule: (data: any) => apiClient.post('/admin/late-fee-rules', data),
   createDepositRule: (data: any) => apiClient.post('/admin/deposit-rules', data),
+  createPricingRule: (data: any) => apiClient.post('/admin/pricing-rules', data),
 
   // Quotations
   getQuotationTemplates: () => apiClient.get('/admin/quotation-templates'),

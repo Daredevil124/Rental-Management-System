@@ -31,3 +31,11 @@ export const createDepositRuleSchema = z.object({
   currency: z.string().length(3).optional(),
   isActive: z.boolean().optional(),
 });
+
+export const createPricingRuleSchema = z.object({
+  priceListId: z.string().uuid(),
+  rentalPeriodId: z.string().uuid(),
+  productId: z.string().uuid(),
+  variantId: z.string().uuid().optional().nullable(),
+  price: z.number().min(0),
+});

@@ -12,3 +12,4 @@ pricingRouter.get('/admin/price-lists', authenticate, authorize(['ADMIN']), pric
 pricingRouter.post('/admin/price-lists', authenticate, authorize(['ADMIN']), pricingController.createPriceList);
 pricingRouter.post('/admin/late-fee-rules', authenticate, authorize(['ADMIN']), pricingController.createLateFeeRule);
 pricingRouter.post('/admin/deposit-rules', authenticate, authorize(['ADMIN']), pricingController.createDepositRule);
+pricingRouter.post('/admin/pricing-rules', authenticate, authorize(['ADMIN']), pricingController.createPricingRule);

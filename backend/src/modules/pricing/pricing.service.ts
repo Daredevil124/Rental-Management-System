@@ -4,6 +4,7 @@ import {
   createPriceListSchema,
   createLateFeeRuleSchema,
   createDepositRuleSchema,
+  createPricingRuleSchema,
 } from './pricing.schema.js';
 
 export class PricingService {
@@ -33,6 +34,12 @@ export class PricingService {
 
   async createDepositRule(data: z.infer<typeof createDepositRuleSchema>) {
     return prisma.depositRule.create({
+      data,
+    });
+  }
+
+  async createPricingRule(data: z.infer<typeof createPricingRuleSchema>) {
+    return prisma.pricingRule.create({
       data,
     });
   }

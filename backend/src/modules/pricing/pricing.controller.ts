@@ -4,6 +4,7 @@ import {
   createPriceListSchema,
   createLateFeeRuleSchema,
   createDepositRuleSchema,
+  createPricingRuleSchema,
 } from './pricing.schema.js';
 
 export class PricingController {
@@ -57,6 +58,20 @@ export class PricingController {
     try {
       const parsed = createDepositRuleSchema.parse(req.body);
       const rule = await pricingService.createDepositRule(parsed);
+      res.status(201).json({ data: rule });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        res.status(400).json({ error: { message: 'Validation failed', details: error.errors } });
+        return;
+      }
+      next(error);
+    }
+  }
+
+  async createPricingRule(req: Request, res: Response, next: NextFunction) {
+    try {
+      const parsed = createPricingRuleSchema.parse(req.body);
+      const rule = await pricingService.createPricingRule(parsed);
       res.status(201).json({ data: rule });
     } catch (error: any) {
       if (error.name === 'ZodError') {
