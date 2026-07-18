@@ -17,35 +17,35 @@ const Profile = () => {
 
   // Address state
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [address, setAddress] = useState(() => {
+  const [address, setAddress] = useState<any>(() => {
     const saved = localStorage.getItem('user_address');
-    return saved ? JSON.parse(saved) : {
-      label: 'Home',
-      line1: '123 Main St, Apartment 4B',
-      line2: '',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      postalCode: '400001'
-    };
+    return saved ? JSON.parse(saved) : null;
   });
   
   // Address temporary edit values
-  const [editAddress, setEditAddress] = useState(address);
+  const [editAddress, setEditAddress] = useState(address || {
+    label: 'Home',
+    line1: '',
+    line2: '',
+    city: '',
+    state: '',
+    postalCode: ''
+  });
 
   // Payment state
   const [isEditingPayment, setIsEditingPayment] = useState(false);
-  const [payment, setPayment] = useState(() => {
+  const [payment, setPayment] = useState<any>(() => {
     const saved = localStorage.getItem('user_payment');
-    return saved ? JSON.parse(saved) : {
-      cardType: 'Visa',
-      last4: '4242',
-      expiry: '12/25',
-      cardholder: 'Jane Doe'
-    };
+    return saved ? JSON.parse(saved) : null;
   });
 
   // Payment temporary edit values
-  const [editPayment, setEditPayment] = useState(payment);
+  const [editPayment, setEditPayment] = useState(payment || {
+    cardholder: '',
+    cardNumber: '',
+    expiry: '',
+    cvv: ''
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -109,7 +109,7 @@ const Profile = () => {
     e.preventDefault();
     // Simulate updating last4 based on what was entered
     const cleanCard = editPayment.cardNumber || '';
-    const last4 = cleanCard.length >= 4 ? cleanCard.slice(-4) : payment.last4;
+    const last4 = cleanCard.length >= 4 ? cleanCard.slice(-4) : '4242';
     const finalPayment = {
       cardType: editPayment.cardNumber?.startsWith('5') ? 'Mastercard' : 'Visa',
       last4,
@@ -222,7 +222,7 @@ const Profile = () => {
               <MapPin size={20} className="icon-accent" />
               <h3>Saved Addresses</h3>
             </div>
-            {!isEditingAddress && (
+            {address && !isEditingAddress && (
               <button 
                 onClick={() => {
                   setEditAddress(address);
@@ -272,7 +272,7 @@ const Profile = () => {
                 <div className="form-group-custom">
                   <label className="label-custom">City</label>
                   <input 
-                    type="text" 
+                  type="text" 
                     value={editAddress.city} 
                     onChange={(e) => setEditAddress({ ...editAddress, city: e.target.value })} 
                     required
@@ -310,7 +310,7 @@ const Profile = () => {
                 </button>
               </div>
             </form>
-          ) : (
+          ) : address ? (
             <div className="saved-address-display mt-4">
               <p className="address-label"><strong>{address.label}</strong></p>
               <p className="subtitle mt-1">
@@ -319,6 +319,27 @@ const Profile = () => {
                 <br />
                 {address.city}, {address.state} - {address.postalCode}
               </p>
+            </div>
+          ) : (
+            <div className="empty-profile-detail mt-6 p-6 text-center border border-dashed border-gray-700/60 rounded-2xl">
+              <p className="text-sm text-gray-400 mb-4">No address details on file. Please add an address to complete your profile.</p>
+              <button 
+                onClick={() => {
+                  setEditAddress({
+                    label: 'Home',
+                    line1: '',
+                    line2: '',
+                    city: '',
+                    state: '',
+                    postalCode: ''
+                  });
+                  setIsEditingAddress(true);
+                }}
+                className="btn-primary py-2 px-4 text-sm justify-center mx-auto"
+                style={{ width: 'fit-content' }}
+              >
+                Add Address
+              </button>
             </div>
           )}
         </div>
@@ -330,7 +351,7 @@ const Profile = () => {
               <CreditCard size={20} className="icon-accent" />
               <h3>Payment Methods</h3>
             </div>
-            {!isEditingPayment && (
+            {payment && !isEditingPayment && (
               <button 
                 onClick={() => {
                   setEditPayment({
@@ -408,13 +429,32 @@ const Profile = () => {
                 </button>
               </div>
             </form>
-          ) : (
+          ) : payment ? (
             <div className="saved-payment-display mt-4">
               <p className="cardholder-name"><strong>{payment.cardholder}</strong></p>
               <div className="payment-details mt-2">
                 <p className="subtitle">{payment.cardType} ending in {payment.last4}</p>
                 <p className="subtitle text-xs">Expires {payment.expiry}</p>
               </div>
+            </div>
+          ) : (
+            <div className="empty-profile-detail mt-6 p-6 text-center border border-dashed border-gray-700/60 rounded-2xl">
+              <p className="text-sm text-gray-400 mb-4">No payment details on file. Please add a payment method for seamless checkouts.</p>
+              <button 
+                onClick={() => {
+                  setEditPayment({
+                    cardholder: '',
+                    cardNumber: '',
+                    expiry: '',
+                    cvv: ''
+                  });
+                  setIsEditingPayment(true);
+                }}
+                className="btn-primary py-2 px-4 text-sm justify-center mx-auto"
+                style={{ width: 'fit-content' }}
+              >
+                Add Payment
+              </button>
             </div>
           )}
         </div>
