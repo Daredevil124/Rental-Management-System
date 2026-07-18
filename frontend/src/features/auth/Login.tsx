@@ -62,11 +62,7 @@ const Login = () => {
               <User size={18} className="input-icon" />
               <input 
                 type="email" 
-<<<<<<< HEAD
                 placeholder="admin@rentops.com or jane@example.com" 
-=======
-                placeholder="admin@rentops.com" 
->>>>>>> b6da2f0b5324f412a8215513c151b6b9caddd863
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required 
