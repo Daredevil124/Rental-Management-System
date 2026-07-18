@@ -29,9 +29,17 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
+      let errorMessage = data?.error?.message || data?.message || response.statusText;
+      
+      // If there are Zod validation details, append the first one to the message for clarity
+      if (data?.error?.details && Array.isArray(data.error.details) && data.error.details.length > 0) {
+        const firstError = data.error.details[0];
+        errorMessage = `${errorMessage}: ${firstError.path.join('.') || 'Field'} - ${firstError.message}`;
+      }
+
       throw new ApiError(
         response.status,
-        data?.message || response.statusText,
+        errorMessage,
         data
       );
     }
