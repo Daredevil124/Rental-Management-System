@@ -102,6 +102,38 @@ flowchart TB
   K8s -. deploys .-> Worker
 ```
 
+## Database Schema
+
+```mermaid
+erDiagram
+  USER ||--o{ ADDRESS : "has"
+  USER ||--o{ RENTAL_ORDER : "places"
+  USER ||--o{ QUOTATION : "requests"
+  
+  PRODUCT ||--o{ PRODUCT_VARIANT : "has"
+  PRODUCT ||--o{ ACCESSORY : "includes"
+  
+  PRODUCT_VARIANT ||--o{ INVENTORY_UNIT : "tracks"
+  
+  PRICE_LIST ||--o{ PRICING_RULE : "defines"
+  PRICE_LIST ||--o{ DEPOSIT_RULE : "defines"
+  PRICE_LIST ||--o{ LATE_FEE_RULE : "defines"
+  
+  RENTAL_PERIOD ||--o{ PRICING_RULE : "used by"
+  
+  CART ||--o{ CART_ITEM : "contains"
+  USER ||--o| CART : "owns"
+  
+  RENTAL_ORDER ||--o{ RENTAL_ITEM : "contains"
+  RENTAL_ORDER ||--o{ INVOICE : "generates"
+  RENTAL_ORDER ||--o{ PAYMENT : "receives"
+  RENTAL_ORDER ||--o{ DEPOSIT_TRANSACTION : "records"
+  
+  RENTAL_ORDER ||--o{ PICKUP_TASK : "requires"
+  RENTAL_ORDER ||--o{ RETURN_TASK : "requires"
+  RETURN_TASK ||--o{ RETURN_INSPECTION : "results in"
+```
+
 ## Rental Lifecycle
 
 ```mermaid

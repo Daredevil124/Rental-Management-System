@@ -7,6 +7,10 @@ import { errorHandler } from './middleware/error-handler.js';
 import { notFoundMiddleware } from './middleware/not-found.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { healthRouter } from './routes/health.routes.js';
+import { authRouter } from './modules/auth/auth.routes.js';
+import { productsRouter } from './modules/products/products.routes.js';
+import { pricingRouter } from './modules/pricing/pricing.routes.js';
+import { usersRouter } from './modules/users/users.routes.js';
 
 export const createApp = () => {
   const app = express();
@@ -22,6 +26,10 @@ export const createApp = () => {
   }
 
   app.use(`/api/${env.apiVersion}`, healthRouter);
+  app.use(`/api/${env.apiVersion}/auth`, authRouter);
+  app.use(`/api/${env.apiVersion}/users`, usersRouter);
+  app.use(`/api/${env.apiVersion}`, productsRouter);
+  app.use(`/api/${env.apiVersion}`, pricingRouter);
   app.use(notFoundMiddleware);
   app.use(errorHandler);
 

@@ -18,5 +18,7 @@ export const env = {
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   databaseUrl:
     process.env.DATABASE_URL ??
-    'postgresql://rental_user:rental_password@localhost:5432/rental_management?schema=public'
+    'postgresql://rental_user:rental_password@localhost:5432/rental_management?schema=public',
+  jwtSecret: process.env.JWT_SECRET ?? 'supersecretjwtkey',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1d'
 };

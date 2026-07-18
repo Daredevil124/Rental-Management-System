@@ -109,7 +109,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### A03 Auth And RBAC API
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Registration, login, refresh/logout if time permits, password hashing, role middleware.
 - Own files: `backend/src/modules/auth/**`, `backend/src/modules/users/**`, backend auth tests.
 - Depends on: A01, A02
@@ -118,11 +118,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `POST /api/v1/auth/login`
   - `GET /api/v1/users/me`
   - `PATCH /api/v1/users/me`
-- Done note:
+- Done note: Implemented Auth and Users modules (login, register, getMe, updateMe). Used bcryptjs for hashing and jsonwebtoken for stateless session. Added authentication and authorization middlewares. Connected routes in app.ts. Verification: `npm run typecheck` passed.
 
 ### A04 Product, Variant, Inventory API
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Product CRUD, variants, inventory unit status, accessories, public catalog list.
 - Own files: `backend/src/modules/products/**`
 - Depends on: A02
@@ -133,11 +133,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `PATCH /api/v1/admin/products/:productId`
   - `POST /api/v1/admin/products/:productId/variants`
   - `POST /api/v1/admin/inventory-units`
-- Done note:
+- Done note: Implemented Products module. Setup API for public products and admin product/variant/inventory CRUD. Built Zod schemas for validation. Connected routes in app.ts. Verification: `npm run typecheck` passed.
 
 ### A05 Pricing, Rental Periods, Late Fee Rules
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Default/custom price lists, rental periods, deposit rules, late fee rules.
 - Own files: `backend/src/modules/pricing/**`
 - Depends on: A02
@@ -147,7 +147,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `POST /api/v1/admin/price-lists`
   - `POST /api/v1/admin/late-fee-rules`
   - `POST /api/v1/admin/deposit-rules`
-- Done note:
+- Done note: Implemented Pricing module for rental periods, price lists, late fee rules, and deposit rules. Built Zod schemas. Connected routes in app.ts. Verification: `npm run typecheck` passed.
 
 ### A06 Cart And Checkout
 
@@ -426,11 +426,11 @@ When adding an endpoint, update this table.
 | Endpoint | Owner | Status | Frontend Consumer | Notes |
 | --- | --- | --- | --- | --- |
 | `GET /api/v1/health` | A | Done | C | Implemented in A01; returns standard success envelope and `x-request-id` header |
-| `POST /api/v1/auth/register` | A | Not started | B02 | Customer/admin registration depending seed policy |
-| `POST /api/v1/auth/login` | A | Not started | B02 | Returns token and user |
-| `GET /api/v1/users/me` | A | Not started | B02/B05 | Current user |
-| `GET /api/v1/products` | A | Not started | B03 | Catalog list |
-| `GET /api/v1/products/:productId` | A | Not started | B03 | Product detail |
+| `POST /api/v1/auth/register` | A | Done | B02 | Customer/admin registration depending seed policy |
+| `POST /api/v1/auth/login` | A | Done | B02 | Returns token and user |
+| `GET /api/v1/users/me` | A | Done | B02/B05 | Current user |
+| `GET /api/v1/products` | A | Done | B03 | Catalog list |
+| `GET /api/v1/products/:productId` | A | Done | B03 | Product detail |
 | `POST /api/v1/rentals/checkout` | A | Not started | B04 | Converts cart to rental |
 | `GET /api/v1/admin/dashboard/summary` | A | Not started | B06/C04 | Dashboard cards |
 | `GET /api/v1/admin/pickups` | A | Not started | B09 | Daily pickups |
