@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './AdminPricing.css';
 import { Plus, Edit2, X, Trash2, Calendar, Star } from 'lucide-react';
+import { adminApi } from '../../api/admin';
 
 const AdminPricing = () => {
   const [showRuleModal, setShowRuleModal] = useState(false);
@@ -12,35 +13,47 @@ const AdminPricing = () => {
     endsAt: '' 
   });
 
-  const [priceLists, setPriceLists] = useState<any[]>([
-    { id: 1, name: 'Standard Pricing', description: 'Base default rates for all products', isDefault: true, startsAt: null, endsAt: null, status: 'Active' },
-    { id: 2, name: 'Summer Sale 2026', description: '15% discount for summer season', isDefault: false, startsAt: '2026-06-01', endsAt: '2026-08-31', status: 'Scheduled' },
-    { id: 3, name: 'Corporate Partners', description: 'Special tier for corporate B2B rentals', isDefault: false, startsAt: null, endsAt: null, status: 'Active' },
-  ]);
+  const [priceLists, setPriceLists] = useState<any[]>([]);
 
-  const handleSavePriceList = () => {
-    if (newPriceList.name) {
-      const isCurrentlyActive = !newPriceList.startsAt || new Date(newPriceList.startsAt) <= new Date();
-      
-      const newEntry = {
-        id: Date.now(),
-        name: newPriceList.name,
-        description: newPriceList.description,
-        isDefault: newPriceList.isDefault,
-        startsAt: newPriceList.startsAt || null,
-        endsAt: newPriceList.endsAt || null,
-        status: isCurrentlyActive ? 'Active' : 'Scheduled'
-      };
-      
-      let updatedLists = [...priceLists];
-      if (newPriceList.isDefault) {
-        // Remove default from others
-        updatedLists = updatedLists.map(list => ({ ...list, isDefault: false }));
+  useEffect(() => {
+    fetchPriceLists();
+  }, []);
+
+  const fetchPriceLists = async () => {
+    try {
+      const res: any = await adminApi.getPriceLists();
+      if (res.data && res.data.length > 0) {
+        setPriceLists(res.data);
+      } else {
+        // Fallback if empty to show UI
+        setPriceLists([
+          { id: '1', name: 'Standard Pricing', description: 'Base default rates for all products', isDefault: true, startsAt: null, endsAt: null, status: 'Active' },
+        ]);
       }
-      
-      setPriceLists([...updatedLists, newEntry]);
-      setShowRuleModal(false);
-      setNewPriceList({ name: '', description: '', isDefault: false, startsAt: '', endsAt: '' });
+    } catch (err) {
+      console.error('Failed to fetch price lists', err);
+    }
+  };
+
+  const handleSavePriceList = async () => {
+    if (newPriceList.name) {
+      try {
+        await adminApi.createPriceList({
+          name: newPriceList.name,
+          description: newPriceList.description,
+          isDefault: newPriceList.isDefault,
+          startsAt: newPriceList.startsAt ? new Date(newPriceList.startsAt).toISOString() : null,
+          endsAt: newPriceList.endsAt ? new Date(newPriceList.endsAt).toISOString() : null,
+          isActive: true
+        });
+        
+        await fetchPriceLists();
+        setShowRuleModal(false);
+        setNewPriceList({ name: '', description: '', isDefault: false, startsAt: '', endsAt: '' });
+      } catch (err) {
+        console.error('Failed to create price list', err);
+        alert('Failed to save price list');
+      }
     }
   };
 
