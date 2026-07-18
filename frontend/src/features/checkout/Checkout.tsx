@@ -7,39 +7,42 @@ import { rentalsApi } from '../../api/rentals';
 const Checkout = () => {
   const navigate = useNavigate();
   const [success, setSuccess] = useState(false);
-  const [cart, setCart] = useState<any>(null);
+  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const res: any = await rentalsApi.getCart();
-        setCart(res.data);
-      } catch (err) {
-        console.error('Failed to fetch cart', err);
-      } finally {
-        setLoading(false);
+    const fetchCart = () => {
+      const storedCart = localStorage.getItem('cart');
+      if (storedCart) {
+        setItems(JSON.parse(storedCart));
+      } else {
+        setItems([]);
       }
+      setLoading(false);
     };
     fetchCart();
   }, []);
 
-    const [deliveryMethod, setDeliveryMethod] = useState('DELIVERY');
-    const [fullName, setFullName] = useState('');
-    const [address, setAddress] = useState('');
-    const [cardNumber, setCardNumber] = useState('');
-    const [expiry, setExpiry] = useState('');
-    const [cvv, setCvv] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('DELIVERY');
+  const [fullName, setFullName] = useState('');
+  const [address, setAddress] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
 
   const handleCheckout = async () => {
     setCheckingOut(true);
     try {
-      // In a real app, we would save the address to DB first and pass the ID
+      // Create a checkout payload matching our new format
       await rentalsApi.checkout({
         addressId: 'temp-address-id', 
-        deliveryMethod
+        deliveryMethod,
+        items
       });
+      // Clear cart on successful checkout
+      localStorage.removeItem('cart');
+      window.dispatchEvent(new Event('local-storage-update'));
       setSuccess(true);
     } catch (err) {
       console.error('Checkout failed', err);
@@ -66,13 +69,14 @@ const Checkout = () => {
     return <div className="p-8 text-center">Loading checkout...</div>;
   }
 
-  const items = cart?.items || [];
-  const subtotal = cart?.subtotal || 0;
-  const deposit = cart?.depositTotal || 0;
+  const subtotal = items.reduce((acc, item) => acc + item.price, 0);
+  const deposit = items.reduce((acc, item) => acc + (item.deposit * (item.quantity || 1)), 0);
   const taxes = subtotal * 0.18;
   const total = subtotal + deposit + taxes;
 
-  const isFormValid = items.length > 0 && fullName && address && cardNumber && expiry && cvv;
+  const isFormValid = items.length > 0 && 
+                      (deliveryMethod === 'STORE_PICKUP' || (fullName && address)) && 
+                      cardNumber && expiry && cvv;
 
   return (
     <div className="checkout-container animate-fade-in">
@@ -98,20 +102,22 @@ const Checkout = () => {
             </div>
           </div>
 
-          <div className="checkout-card glass-panel">
-            <div className="checkout-card-header">
-              <MapPin size={20} className="icon-accent" />
-              <h2>Shipping Address</h2>
+          {deliveryMethod === 'DELIVERY' && (
+            <div className="checkout-card glass-panel">
+              <div className="checkout-card-header">
+                <MapPin size={20} className="icon-accent" />
+                <h2>Shipping Address</h2>
+              </div>
+              <div className="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} />
+              </div>
+              <div className="form-group mt-4">
+                <label>Address</label>
+                <textarea rows={3} placeholder="123 Main St, City, Country" value={address} onChange={e => setAddress(e.target.value)}></textarea>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Full Name</label>
-              <input type="text" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} />
-            </div>
-            <div className="form-group mt-4">
-              <label>Address</label>
-              <textarea rows={3} placeholder="123 Main St, City, Country" value={address} onChange={e => setAddress(e.target.value)}></textarea>
-            </div>
-          </div>
+          )}
 
           <div className="checkout-card glass-panel">
             <div className="checkout-card-header">
@@ -137,12 +143,12 @@ const Checkout = () => {
         </div>
 
         <div className="checkout-summary-section">
-          <div className="cart-summary glass-panel">
+          <div className="cart-summary glass-panel h-max">
             <h2>Order Summary</h2>
             {items.map((item: any) => (
               <div key={item.id} className="summary-row text-sm">
-                <span>{item.productName || 'Item'} (x{item.quantity})</span>
-                <span>₹{(item.unitPrice * item.quantity).toFixed(2)}</span>
+                <span>{item.name || 'Item'} (x{item.quantity || 1})</span>
+                <span>₹{item.price.toFixed(2)}</span>
               </div>
             ))}
             <div className="summary-divider"></div>
@@ -170,7 +176,7 @@ const Checkout = () => {
             >
               {checkingOut ? 'Processing...' : 'Pay Securely'}
             </button>
-            <p className="secure-payment-note">Your payment is encrypted and secure.</p>
+            <p className="secure-payment-note text-center mt-3 text-xs text-gray-500">Your payment is encrypted and secure.</p>
           </div>
         </div>
       </div>
