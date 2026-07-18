@@ -78,6 +78,10 @@ const Navbar = () => {
                   <Tag size={20} />
                   <span>Pricing</span>
                 </Link>
+                <Link to="/admin/users" className={`nav-link ${location.pathname === '/admin/users' ? 'active' : ''}`}>
+                  <User size={20} />
+                  <span>Users</span>
+                </Link>
               </>
             ) : (
               <>
