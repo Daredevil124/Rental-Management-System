@@ -311,8 +311,8 @@ const AdminProducts = () => {
 
       {/* ADD PRODUCT MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="glass-panel p-6 w-full max-w-3xl animate-fade-in border border-indigo-500/30 my-8">
+        <div className="modal-backdrop">
+          <div className="modal-content glass-panel max-w-3xl animate-fade-in">
             <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
               <h2 className="text-xl font-semibold text-white">Add New Product & Variants</h2>
               <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white"><X size={20}/></button>
@@ -320,69 +320,69 @@ const AdminProducts = () => {
             
             <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
               <div>
-                <h3 className="text-lg font-medium text-indigo-400 mb-3 border-b border-gray-700 pb-2">Basic Info</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-1">Base Product SKU</label>
-                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} placeholder="e.g. CAM-02" />
+                <div className="form-group-title">Basic Info</div>
+                <div className="form-grid-2">
+                  <div className="form-group">
+                    <label>Base Product SKU</label>
+                    <input type="text" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} placeholder="e.g. CAM-02" />
                   </div>
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-1">Product Name</label>
-                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} placeholder="e.g. Cinema Camera" />
+                  <div className="form-group">
+                    <label>Product Name</label>
+                    <input type="text" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} placeholder="e.g. Cinema Camera" />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-1">Category</label>
-                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.cat} onChange={e => setNewProduct({...newProduct, cat: e.target.value})} placeholder="e.g. Photography" />
+                <div className="form-grid-3">
+                  <div className="form-group">
+                    <label>Category</label>
+                    <input type="text" value={newProduct.cat} onChange={e => setNewProduct({...newProduct, cat: e.target.value})} placeholder="e.g. Photography" />
                   </div>
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-1">Base Daily Price (₹)</label>
-                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} placeholder="e.g. 1500" />
+                  <div className="form-group">
+                    <label>Base Daily Price (₹)</label>
+                    <input type="text" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} placeholder="e.g. 1500" />
                   </div>
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-1">Initial Total Stock</label>
-                    <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})} />
+                  <div className="form-group">
+                    <label>Initial Total Stock</label>
+                    <input type="number" value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})} />
                   </div>
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
-                  <h3 className="text-lg font-medium text-indigo-400">Product Variants</h3>
-                  <button className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors" onClick={handleAddVariant}>
+                <div className="variants-header">
+                  <h3>Product Variants</h3>
+                  <button className="add-variant-btn" type="button" onClick={handleAddVariant}>
                     <Plus size={12} /> Add Variant
                   </button>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="variants-list">
                   {newProduct.variants.map((variant, index) => (
-                    <div key={index} className="bg-gray-800/50 p-3 rounded border border-gray-700 relative group">
+                    <div key={index} className="variant-card">
                       {newProduct.variants.length > 1 && (
-                        <button className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeVariant(index)}>
+                        <button className="remove-variant-btn" type="button" onClick={() => removeVariant(index)}>
                           <X size={12} />
                         </button>
                       )}
-                      <div className="grid grid-cols-5 gap-3">
-                        <div>
-                          <label className="block text-gray-400 text-xs mb-1">Variant SKU</label>
-                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.sku} onChange={e => updateVariant(index, 'sku', e.target.value)} placeholder="e.g. CAM-02-BLK" />
+                      <div className="form-grid-5">
+                        <div className="form-group">
+                          <label>Variant SKU</label>
+                          <input type="text" value={variant.sku} onChange={e => updateVariant(index, 'sku', e.target.value)} placeholder="e.g. CAM-02-BLK" />
                         </div>
-                        <div>
-                          <label className="block text-gray-400 text-xs mb-1">Brand</label>
-                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.brand} onChange={e => updateVariant(index, 'brand', e.target.value)} placeholder="Sony, Canon" />
+                        <div className="form-group">
+                          <label>Brand</label>
+                          <input type="text" value={variant.brand} onChange={e => updateVariant(index, 'brand', e.target.value)} placeholder="Sony, Canon" />
                         </div>
-                        <div>
-                          <label className="block text-gray-400 text-xs mb-1">Manufacturer</label>
-                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.manufacturer} onChange={e => updateVariant(index, 'manufacturer', e.target.value)} placeholder="Manufacturer" />
+                        <div className="form-group">
+                          <label>Manufacturer</label>
+                          <input type="text" value={variant.manufacturer} onChange={e => updateVariant(index, 'manufacturer', e.target.value)} placeholder="Manufacturer" />
                         </div>
-                        <div>
-                          <label className="block text-gray-400 text-xs mb-1">Color</label>
-                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.color} onChange={e => updateVariant(index, 'color', e.target.value)} placeholder="Black, Silver" />
+                        <div className="form-group">
+                          <label>Color</label>
+                          <input type="text" value={variant.color} onChange={e => updateVariant(index, 'color', e.target.value)} placeholder="Black, Silver" />
                         </div>
-                        <div>
-                          <label className="block text-gray-400 text-xs mb-1">Size / Specs</label>
-                          <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-1.5 text-white text-sm focus:border-indigo-500" value={variant.size} onChange={e => updateVariant(index, 'size', e.target.value)} placeholder="35mm, Large" />
+                        <div className="form-group">
+                          <label>Size / Specs</label>
+                          <input type="text" value={variant.size} onChange={e => updateVariant(index, 'size', e.target.value)} placeholder="35mm, Large" />
                         </div>
                       </div>
                     </div>
@@ -391,34 +391,34 @@ const AdminProducts = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-medium text-indigo-400 mb-3 border-b border-gray-700 pb-2">Pricing & Penalty Rules</h3>
+                <div className="form-group-title">Pricing & Penalty Rules</div>
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-gray-400 text-sm mb-1">Security Deposit Amount (₹)</label>
-                    <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.depositAmount || ''} onChange={e => setNewProduct({...newProduct, depositAmount: Number(e.target.value)})} placeholder="e.g. 5000" />
+                  <div className="form-group">
+                    <label>Security Deposit Amount (₹)</label>
+                    <input type="number" value={newProduct.depositAmount || ''} onChange={e => setNewProduct({...newProduct, depositAmount: Number(e.target.value)})} placeholder="e.g. 5000" />
                   </div>
                   
-                  <div className="bg-gray-800/50 p-3 rounded border border-gray-700 space-y-3">
-                    <label className="block text-gray-300 text-sm font-medium">Late Return Configuration</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-gray-400 text-xs mb-1">Fee Type</label>
-                        <select className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.lateFeeUnit || 'Daily'} onChange={e => setNewProduct({...newProduct, lateFeeUnit: e.target.value})}>
+                  <div className="late-fee-config">
+                    <div className="late-fee-config-title">Late Return Configuration</div>
+                    <div className="form-grid-2">
+                      <div className="form-group">
+                        <label>Fee Type</label>
+                        <select value={newProduct.lateFeeUnit || 'Daily'} onChange={e => setNewProduct({...newProduct, lateFeeUnit: e.target.value})}>
                           <option>Hourly</option>
                           <option>Daily</option>
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-gray-400 text-xs mb-1">Amount (₹)</label>
-                        <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm focus:border-indigo-500" value={newProduct.lateFeeAmount || 500} onChange={e => setNewProduct({...newProduct, lateFeeAmount: Number(e.target.value)})} />
+                      <div className="form-group">
+                        <label>Amount (₹)</label>
+                        <input type="number" value={newProduct.lateFeeAmount || 500} onChange={e => setNewProduct({...newProduct, lateFeeAmount: Number(e.target.value)})} />
                       </div>
-                      <div>
-                        <label className="block text-gray-400 text-xs mb-1">Grace Period (Minutes)</label>
-                        <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm focus:border-indigo-500" value={newProduct.gracePeriod || 120} onChange={e => setNewProduct({...newProduct, gracePeriod: Number(e.target.value)})} />
+                      <div className="form-group">
+                        <label>Grace Period (Minutes)</label>
+                        <input type="number" value={newProduct.gracePeriod || 120} onChange={e => setNewProduct({...newProduct, gracePeriod: Number(e.target.value)})} />
                       </div>
-                      <div>
-                        <label className="block text-gray-400 text-xs mb-1">Maximum Cap (₹)</label>
-                        <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm focus:border-indigo-500" value={newProduct.maxFee || 5000} onChange={e => setNewProduct({...newProduct, maxFee: Number(e.target.value)})} />
+                      <div className="form-group">
+                        <label>Maximum Cap (₹)</label>
+                        <input type="number" value={newProduct.maxFee || 5000} onChange={e => setNewProduct({...newProduct, maxFee: Number(e.target.value)})} />
                       </div>
                     </div>
                   </div>
@@ -435,41 +435,39 @@ const AdminProducts = () => {
 
       {/* EDIT PRODUCT DETAILS MODAL */}
       {showEditModal && editingProduct && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="glass-panel p-6 w-full max-w-lg animate-fade-in border border-indigo-500/30">
+        <div className="modal-backdrop">
+          <div className="modal-content glass-panel max-w-lg">
             <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
               <h2 className="text-xl font-semibold text-white">Edit Product Details</h2>
               <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white"><X size={20}/></button>
             </div>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-gray-400 text-sm mb-1">Product Name</label>
+              <div className="form-group">
+                <label>Product Name</label>
                 <input 
                   type="text" 
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" 
                   value={editingProduct.name} 
                   onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} 
                 />
               </div>
 
-              <div>
-                <label className="block text-gray-400 text-sm mb-1">Category</label>
+              <div className="form-group">
+                <label>Category</label>
                 <input 
                   type="text" 
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" 
                   value={editingProduct.category} 
                   onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} 
                 />
               </div>
 
-              <div>
-                <label className="block text-gray-400 text-sm mb-1">Description</label>
+              <div className="form-group">
+                <label>Description</label>
                 <textarea 
                   rows={4}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500 resize-none" 
                   value={editingProduct.description} 
                   onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} 
+                  style={{ resize: 'none' }}
                 />
               </div>
             </div>
@@ -478,6 +476,7 @@ const AdminProducts = () => {
               <button 
                 className="w-1/2 bg-gray-800 hover:bg-gray-700 text-white rounded py-2 transition-colors"
                 onClick={() => setShowEditModal(false)}
+                style={{ border: 'none', cursor: 'pointer' }}
               >
                 Cancel
               </button>

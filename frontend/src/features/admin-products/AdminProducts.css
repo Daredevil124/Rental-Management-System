@@ -59,3 +59,156 @@
   background-color: hsla(var(--warning), 0.15);
   color: hsl(var(--warning));
 }
+
+/* Modal Backdrop Overlay */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+/* Modal Content Container */
+.modal-content {
+  width: 100%;
+  border: 1px solid hsla(var(--border-subtle), 0.8);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+/* Variants Section */
+.variants-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid hsla(var(--border-subtle), 0.5);
+  padding-bottom: 0.5rem;
+}
+
+.variants-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: hsl(var(--bg-accent));
+}
+
+.add-variant-btn {
+  font-size: 0.75rem;
+  background-color: hsl(var(--bg-accent));
+  color: #fff !important;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  border: none;
+  cursor: pointer;
+}
+
+.add-variant-btn:hover {
+  background-color: hsl(var(--bg-accent-hover));
+  transform: translateY(-1px);
+}
+
+.variant-card {
+  background-color: hsla(var(--bg-card), 0.5);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid hsla(var(--border-subtle), 0.8);
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+.remove-variant-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: hsla(var(--danger), 0.1);
+  color: hsl(var(--danger));
+  border: 1px solid hsla(var(--danger), 0.2);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+
+.remove-variant-btn:hover {
+  background-color: hsl(var(--danger));
+  color: #fff;
+}
+
+/* Custom form utilities */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-size: 0.825rem;
+  color: hsl(var(--text-secondary));
+  font-weight: 500;
+  text-align: left;
+}
+
+.form-group-title {
+  font-size: 1.1rem;
+  color: hsl(var(--bg-accent));
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid hsla(var(--border-subtle), 0.5);
+  padding-bottom: 0.5rem;
+  text-align: left;
+}
+
+.late-fee-config {
+  background-color: hsla(var(--bg-card), 0.4);
+  border: 1px solid hsla(var(--border-subtle), 0.8);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.late-fee-config-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--text-primary));
+  text-align: left;
+}
