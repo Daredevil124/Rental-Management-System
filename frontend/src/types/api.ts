@@ -45,12 +45,16 @@ export interface RentalListResponse {
   data: RentalOrder[];
 }
 
-// Admin Dashboard Types
 export interface DashboardSummary {
   data: {
     activeRentals: number;
     dueToday: number;
     overdue: number;
     revenueToday: number;
+    upcomingPickups: number;
+    upcomingReturns: number;
+    rentalRevenue: number;
+    securityDepositsHeld: number;
+    lateFeeCollection: number;
   }
 }

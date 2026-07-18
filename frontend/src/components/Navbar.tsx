@@ -36,6 +36,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     localStorage.removeItem('cart');
     setUser(null);
     setCartCount(0);
@@ -43,12 +44,12 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
 
   return (
     <nav className="navbar glass-panel">
       <div className="navbar-container container">
-        <Link to={isAdmin ? "/admin" : "/"} className="navbar-logo">
+        <Link to={isAdmin ? "/admin" : "/catalog"} className="navbar-logo">
           <PackageSearch size={28} className="logo-icon" />
           <span className="text-gradient-accent font-outfit font-bold text-xl">RentOps</span>
         </Link>
@@ -80,7 +81,7 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Catalog</Link>
+                <Link to="/catalog" className={`nav-link ${location.pathname === '/catalog' || location.pathname === '/' ? 'active' : ''}`}>Catalog</Link>
                 <Link to="/orders" className={`nav-link ${location.pathname === '/orders' ? 'active' : ''}`}>My Rentals</Link>
                 <Link to="/cart" className="cart-btn">
                   <ShoppingCart size={20} />
@@ -90,7 +91,7 @@ const Navbar = () => {
             )
           ) : (
             <>
-              <Link to="/" className="nav-link">Catalog</Link>
+              <Link to="/catalog" className="nav-link">Catalog</Link>
               <Link to="/login" className="nav-link">Login</Link>
             </>
           )}

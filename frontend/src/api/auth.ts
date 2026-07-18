@@ -13,4 +13,7 @@ export const authApi = {
     
   updateMe: (userData: any) => 
     apiClient.patch<{ data: User }>('/users/me', userData),
+
+  verifyEmail: (email: string) => 
+    apiClient.post<{ data: { exists: boolean } }>('/auth/verify-email', { email }),
 };

@@ -21,6 +21,9 @@ export class AuthService {
         passwordHash,
         fullName: data.fullName,
         role: data.role ?? 'CUSTOMER',
+        companyName: data.companyName,
+        productCategory: data.productCategory,
+        gstNo: data.gstNo,
       },
     });
 
@@ -39,6 +42,11 @@ export class AuthService {
     }
 
     return this.generateAuthResponse(user);
+  }
+
+  async verifyEmail(email: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    return { exists: !!user };
   }
 
   private generateAuthResponse(user: any) {

@@ -44,6 +44,19 @@ const Login = () => {
     <div className="login-container animate-fade-in">
       <div className="login-card glass-panel">
         <div className="login-header">
+          <div className="login-logo-wrapper" style={{
+            background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)',
+            width: '56px',
+            height: '56px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 15px rgba(156, 54, 181, 0.25)',
+            margin: '0 auto 1.5rem auto'
+          }}>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>RO</span>
+          </div>
           <h2 className="text-gradient">Welcome Back</h2>
           <p className="login-subtitle">Sign in to your account to continue</p>
         </div>
@@ -57,7 +70,7 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
-            <label>Email Address</label>
+            <label>Login ID</label>
             <div className="input-with-icon">
               <User size={18} className="input-icon" />
               <input 

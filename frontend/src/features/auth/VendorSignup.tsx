@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import './Login.css'; // Reuse Login styles
-import { ArrowRight, User, Lock, Mail, AlertCircle } from 'lucide-react';
+import { ArrowRight, User, Lock, Mail, Building, Tag, FileText, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 
-const Signup = () => {
+const VendorSignup = () => {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [productCategory, setProductCategory] = useState('Electronics');
+  const [gstNo, setGstNo] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const validatePassword = (pass: string) => {
@@ -33,7 +36,7 @@ const Signup = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
+    
     // UI Validations from Wireframe
     if (password !== confirmPassword) {
       setError('Password and Confirm Password fields must match.');
@@ -49,20 +52,27 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const response = await authApi.register({ 
-        fullName: `${firstName} ${lastName}`.trim(), 
-        email, 
+      const response = await authApi.register({
+        fullName: firstName, // Since schema expects fullName, map First Name
+        email,
         password,
-        role: 'CUSTOMER'
+        role: 'VENDOR',
+        companyName,
+        productCategory,
+        gstNo
       });
+
       if (response?.data?.token) {
         localStorage.setItem('token', response.data.token);
-        navigate('/');
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       } else {
-        setError('Failed to register account');
+        setError('Failed to register vendor account.');
       }
     } catch (err: any) {
-      setError(err.message || 'Error creating account.');
+      setError(err.message || 'Error creating vendor account.');
     } finally {
       setLoading(false);
     }
@@ -70,16 +80,22 @@ const Signup = () => {
 
   return (
     <div className="login-container animate-fade-in">
-      <div className="login-card glass-panel">
+      <div className="login-card glass-panel" style={{ maxWidth: '500px' }}>
         <div className="login-header">
-          <h2 className="text-gradient">Create Account</h2>
-          <p className="login-subtitle">Join us to start renting premium gear</p>
+          <h2 className="text-gradient">Become a Vendor</h2>
+          <p className="login-subtitle">Register to manage inventory and sales orders</p>
         </div>
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg flex items-center gap-2 mb-4 text-sm">
             <AlertCircle size={16} />
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-lg mb-4 text-sm">
+            Vendor registration successful! Redirecting...
           </div>
         )}
 
@@ -90,7 +106,7 @@ const Signup = () => {
               <User size={18} className="input-icon" />
               <input 
                 type="text" 
-                placeholder="First Name" 
+                placeholder="Enter First Name" 
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required 
@@ -99,40 +115,79 @@ const Signup = () => {
           </div>
 
           <div className="form-group">
-            <label>Last Name</label>
+            <label>Company Name</label>
             <div className="input-with-icon">
-              <User size={18} className="input-icon" />
+              <Building size={18} className="input-icon" />
               <input 
                 type="text" 
-                placeholder="Last Name" 
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Enter Company Name" 
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
                 required 
               />
             </div>
           </div>
-          
+
+          <div className="form-group">
+            <label>Product Category</label>
+            <div className="input-with-icon">
+              <Tag size={18} className="input-icon" />
+              <select 
+                value={productCategory}
+                onChange={(e) => setProductCategory(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem 0.75rem 2.75rem',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  color: 'white',
+                  outline: 'none'
+                }}
+              >
+                <option value="Electronics" style={{ backgroundColor: '#211029' }}>Electronics</option>
+                <option value="Furniture" style={{ backgroundColor: '#211029' }}>Furniture</option>
+                <option value="Tools" style={{ backgroundColor: '#211029' }}>Tools</option>
+                <option value="Appliances" style={{ backgroundColor: '#211029' }}>Appliances</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>GST No</label>
+            <div className="input-with-icon">
+              <FileText size={18} className="input-icon" />
+              <input 
+                type="text" 
+                placeholder="Enter GST no" 
+                value={gstNo}
+                onChange={(e) => setGstNo(e.target.value)}
+                required 
+              />
+            </div>
+          </div>
+
           <div className="form-group">
             <label>Email ID</label>
             <div className="input-with-icon">
               <Mail size={18} className="input-icon" />
               <input 
                 type="email" 
-                placeholder="john@example.com" 
+                placeholder="Enter Email ID" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required 
               />
             </div>
           </div>
-          
+
           <div className="form-group">
             <label>Password</label>
             <div className="input-with-icon">
               <Lock size={18} className="input-icon" />
               <input 
                 type="password" 
-                placeholder="••••••••" 
+                placeholder="Enter Password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required 
@@ -146,7 +201,7 @@ const Signup = () => {
               <Lock size={18} className="input-icon" />
               <input 
                 type="password" 
-                placeholder="••••••••" 
+                placeholder="Confirm Password" 
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required 
@@ -159,18 +214,12 @@ const Signup = () => {
             className="btn-primary w-full justify-center mt-4"
             disabled={loading}
           >
-            {loading ? 'Creating Account...' : (
-              <>Sign Up <ArrowRight size={18} /></>
+            {loading ? 'Registering...' : (
+              <>Register <ArrowRight size={18} /></>
             )}
           </button>
-
-          <div className="text-center mt-4" style={{ fontSize: '0.875rem' }}>
-            <Link to="/vendor-signup" className="text-gradient-accent" style={{ fontWeight: 600 }}>
-              Become a vendor
-            </Link>
-          </div>
           
-          <p className="secure-payment-note text-center">
+          <p className="secure-payment-note">
             Already have an account? <Link to="/login" className="text-gradient-accent">Login here</Link>
           </p>
         </form>
@@ -179,4 +228,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default VendorSignup;
