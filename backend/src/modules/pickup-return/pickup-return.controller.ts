@@ -488,15 +488,30 @@ export const confirmReturn = async (req: Request, res: Response) => {
         }
       }
 
-      // 6. Record Deposit Transactions
+      // 6. Record Deposit Transactions & Payment History
       if (totalDeductions > 0) {
+        const deductionAmt = totalDeductions <= originalDeposit ? totalDeductions : originalDeposit;
         await tx.depositTransaction.create({
           data: {
             rentalOrderId: rentalId,
             type: 'DEDUCTION',
             status: 'PARTIALLY_DEDUCTED',
-            amount: totalDeductions <= originalDeposit ? totalDeductions : originalDeposit,
+            amount: deductionAmt,
             reason: 'Late Return or Damage Penalty Deduction'
+          }
+        });
+
+        // Record late fee payment log
+        await tx.payment.create({
+          data: {
+            rentalOrderId: rentalId,
+            userId: rentalOrder.customerId,
+            type: 'LATE_FEE',
+            provider: 'MOCK',
+            providerRef: `REF-LATE-${Date.now()}`,
+            status: 'PAID',
+            amount: deductionAmt,
+            paidAt: new Date()
           }
         });
       }
@@ -509,6 +524,20 @@ export const confirmReturn = async (req: Request, res: Response) => {
             status: 'REFUNDED',
             amount: refundAmount,
             reason: 'Remaining Deposit Refunded'
+          }
+        });
+
+        // Record refund payment log
+        await tx.payment.create({
+          data: {
+            rentalOrderId: rentalId,
+            userId: rentalOrder.customerId,
+            type: 'REFUND',
+            provider: 'MOCK',
+            providerRef: `REF-REF-${Date.now()}`,
+            status: 'PAID',
+            amount: refundAmount,
+            paidAt: new Date()
           }
         });
       }

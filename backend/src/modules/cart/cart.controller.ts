@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../db/prisma.js';
+import { pricingService } from '../pricing/pricing.service.js';
 
 export const getCart = async (req: Request, res: Response) => {
   try {
@@ -20,17 +21,27 @@ export const addToCart = async (req: Request, res: Response) => {
     let cart = await prisma.cart.findFirst({ where: { userId } });
     if (!cart) cart = await prisma.cart.create({ data: { userId } });
     
+    const { productId, variantId, priceListId, rentalPeriodId, quantity } = req.body;
+    
+    const { unitPrice, depositAmount } = await pricingService.calculatePriceAndDeposit(
+      priceListId,
+      rentalPeriodId,
+      productId,
+      variantId
+    );
+
     const newItem = await prisma.cartItem.create({
       data: {
         cartId: cart.id,
-        productId: req.body.productId,
-        variantId: req.body.variantId,
-        priceListId: req.body.priceListId,
-        rentalPeriodId: req.body.rentalPeriodId,
-        quantity: req.body.quantity || 1,
+        productId,
+        variantId,
+        priceListId,
+        rentalPeriodId,
+        quantity: quantity || 1,
         startsAt: new Date(),
-        endsAt: new Date(),
-        unitPrice: 0,
+        endsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 1 week rental
+        unitPrice,
+        depositAmount,
       }
     });
     res.json({ data: newItem });

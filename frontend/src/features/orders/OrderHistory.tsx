@@ -46,12 +46,20 @@ const OrderHistory = () => {
               
               <div className="order-body">
                 <div className="order-details">
-                  <p className="order-item">{order.item || 'Rental Equipment'}</p>
                   <p className="order-meta">Ordered on: {new Date(order.createdAt).toLocaleDateString()}</p>
-                  <p className="order-meta">Return by: {order.endDate ? new Date(order.endDate).toLocaleDateString() : 'N/A'}</p>
+                  {order.returnedAt && (
+                    <p className="order-meta text-success font-medium">Returned on: {new Date(order.returnedAt).toLocaleDateString()}</p>
+                  )}
+                  <div className="deposit-breakdown mt-2 text-xs text-gray-400 space-y-1">
+                    <div>Base Rent: ₹{Number(order.subtotal || 0).toFixed(2)}</div>
+                    <div>Security Deposit: ₹{Number(order.depositTotal || 0).toFixed(2)} (Refundable)</div>
+                    {Number(order.lateFeeTotal) > 0 && (
+                      <div className="text-warning font-semibold">Late Fee Deduction: ₹{Number(order.lateFeeTotal).toFixed(2)}</div>
+                    )}
+                  </div>
                 </div>
                 <div className="order-actions">
-                  <span className="order-amount">₹{order.grandTotal || order.totalAmount || 0}</span>
+                  <span className="order-amount">Total: ₹{Number(order.grandTotal || 0).toFixed(2)}</span>
                   <button 
                     className="btn-secondary"
                     onClick={async () => {
