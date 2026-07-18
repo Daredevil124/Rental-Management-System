@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: rental_secure_pass_2026
       POSTGRES_DB: rental_db
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/postgres/seed.sql:/docker-entrypoint-initdb.d/seed.sql
@@ -20,7 +20,7 @@ services:
     container_name: rental-redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6385:6379"
     volumes:
       - redis_data:/data
     networks:

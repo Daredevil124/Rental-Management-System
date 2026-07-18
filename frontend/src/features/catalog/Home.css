@@ -144,3 +144,104 @@
 .price-period {
   color: hsl(var(--text-secondary));
 }
+
+.no-results-msg {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: hsl(var(--text-muted));
+  padding: 3rem 0;
+  font-size: 1.1rem;
+}
+
+.product-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn var(--transition-fast) forwards;
+}
+
+.product-modal {
+  width: 90%;
+  max-width: 500px;
+  padding: 2.5rem;
+  border-radius: 24px;
+  position: relative;
+  animation: scaleUp var(--transition-fast) forwards;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: transparent;
+  border: none;
+  color: hsl(var(--text-secondary));
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background-color: hsla(var(--bg-accent), 0.1);
+  color: hsl(var(--text-primary));
+}
+
+.modal-price-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: hsla(var(--bg-accent), 0.05);
+  border: 1px solid hsla(var(--bg-accent), 0.1);
+  padding: 1.25rem;
+  border-radius: 16px;
+}
+
+.modal-price-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: hsl(var(--text-primary));
+}
+
+.modal-price-period {
+  color: hsl(var(--text-secondary));
+}
+
+.modal-deposit-amount {
+  font-size: 0.9rem;
+  color: hsl(var(--text-secondary));
+  text-align: right;
+}
+
+.rental-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.date-picker-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

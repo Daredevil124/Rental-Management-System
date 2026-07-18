@@ -1,14 +1,28 @@
 import './Login.css';
 import { ArrowRight, User, Lock } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate admin login
-    navigate('/admin');
+    
+    const isEmailAdmin = email.toLowerCase().includes('admin');
+    const userRole = isEmailAdmin ? 'ADMIN' : 'CUSTOMER';
+    const userName = isEmailAdmin ? 'Admin User' : 'Jane Doe';
+    
+    localStorage.setItem('user', JSON.stringify({ email, role: userRole, name: userName }));
+    window.dispatchEvent(new Event('local-storage-update'));
+    
+    if (userRole === 'ADMIN') {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -18,13 +32,19 @@ const Login = () => {
           <h2 className="text-gradient">Welcome Back</h2>
           <p className="login-subtitle">Sign in to your account to continue</p>
         </div>
-
+ 
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
             <label>Email Address</label>
             <div className="input-with-icon">
               <User size={18} className="input-icon" />
-              <input type="email" placeholder="admin@rentops.com" required />
+              <input 
+                type="email" 
+                placeholder="admin@rentops.com or jane@example.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
             </div>
           </div>
           
@@ -32,7 +52,13 @@ const Login = () => {
             <label>Password</label>
             <div className="input-with-icon">
               <Lock size={18} className="input-icon" />
-              <input type="password" placeholder="••••••••" required />
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+              />
             </div>
           </div>
 

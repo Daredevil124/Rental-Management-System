@@ -104,3 +104,21 @@
   border-color: hsl(var(--bg-accent));
   color: hsl(var(--text-primary));
 }
+
+.logout-btn {
+  background: transparent;
+  border: none;
+  color: hsl(var(--text-secondary));
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.logout-btn:hover {
+  background-color: hsla(var(--bg-accent), 0.1);
+  color: hsl(var(--text-primary));
+}
