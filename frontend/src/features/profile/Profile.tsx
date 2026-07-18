@@ -1,143 +1,422 @@
-import { useState, useRef, useEffect } from 'react';
 import './Profile.css';
-import { User, MapPin, CreditCard, Camera, Plus, X } from 'lucide-react';
+import { User as UserIcon, MapPin, CreditCard, AlertCircle, CheckCircle, Edit3, X, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { authApi } from '../../api/auth';
-import type { User as UserType } from '../../types/api';
 
 const Profile = () => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [user, setUser] = useState<UserType | null>(null);
+  // Profile state
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  // Address state
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [address, setAddress] = useState(() => {
+    const saved = localStorage.getItem('user_address');
+    return saved ? JSON.parse(saved) : {
+      label: 'Home',
+      line1: '123 Main St, Apartment 4B',
+      line2: '',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      postalCode: '400001'
+    };
+  });
+  
+  // Address temporary edit values
+  const [editAddress, setEditAddress] = useState(address);
+
+  // Payment state
+  const [isEditingPayment, setIsEditingPayment] = useState(false);
+  const [payment, setPayment] = useState(() => {
+    const saved = localStorage.getItem('user_payment');
+    return saved ? JSON.parse(saved) : {
+      cardType: 'Visa',
+      last4: '4242',
+      expiry: '12/25',
+      cardholder: 'Jane Doe'
+    };
+  });
+
+  // Payment temporary edit values
+  const [editPayment, setEditPayment] = useState(payment);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchProfile = async () => {
       try {
-        const res = await authApi.getMe();
-        setUser(res.data as UserType);
-      } catch (err) {
-        console.error('Failed to fetch user', err);
+        const response = await authApi.getMe();
+        const user = (response as any).data;
+        if (user) {
+          setFullName(user.fullName || user.name || '');
+          setPhone(user.phone || '');
+          setEmail(user.email || '');
+          setRole(user.role || '');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch profile info.');
       } finally {
         setLoading(false);
       }
     };
-    fetchUser();
-  }, []);
-  
-  // Address State
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addresses, setAddresses] = useState<any[]>(user?.addresses || []);
-  const [newAddress, setNewAddress] = useState({ label: '', line1: '', city: '' });
 
-  // Update addresses when user loads
-  useEffect(() => {
-    if (user?.addresses) {
-      setAddresses(user.addresses);
+    fetchProfile();
+  }, []);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await authApi.updateMe({ fullName, phone });
+      const updatedUser = (response as any).data;
+      
+      setSuccess('Profile details saved!');
+      setIsEditingProfile(false);
+      
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        parsed.name = updatedUser.fullName || updatedUser.name || fullName;
+        localStorage.setItem('user', JSON.stringify(parsed));
+        window.dispatchEvent(new Event('local-storage-update'));
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update profile.');
+    } finally {
+      setSaving(false);
     }
-  }, [user]);
+  };
+
+  const handleSaveAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddress(editAddress);
+    localStorage.setItem('user_address', JSON.stringify(editAddress));
+    setSuccess('Address updated successfully!');
+    setIsEditingAddress(false);
+    // Clear success message after 3 seconds
+    setTimeout(() => setSuccess(''), 3000);
+  };
+
+  const handleSavePayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate updating last4 based on what was entered
+    const cleanCard = editPayment.cardNumber || '';
+    const last4 = cleanCard.length >= 4 ? cleanCard.slice(-4) : payment.last4;
+    const finalPayment = {
+      cardType: editPayment.cardNumber?.startsWith('5') ? 'Mastercard' : 'Visa',
+      last4,
+      expiry: editPayment.expiry,
+      cardholder: editPayment.cardholder
+    };
+    setPayment(finalPayment);
+    localStorage.setItem('user_payment', JSON.stringify(finalPayment));
+    setSuccess('Payment method updated successfully!');
+    setIsEditingPayment(false);
+    setTimeout(() => setSuccess(''), 3000);
+  };
 
   if (loading) {
-    return <div className="p-8 text-center text-white">Loading profile...</div>;
+    return <div className="profile-container animate-fade-in"><p>Loading profile...</p></div>;
   }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleAddAddress = () => {
-    if (newAddress.label && newAddress.line1) {
-      setAddresses([...addresses, newAddress]);
-      setNewAddress({ label: '', line1: '', city: '' });
-      setShowAddressForm(false);
-    }
-  };
 
   return (
     <div className="profile-container animate-fade-in">
-      <h1 className="text-gradient mb-8">My Profile</h1>
+      <h1 className="text-gradient">My Profile</h1>
       
-      <div className="profile-grid">
-        <div className="profile-card glass-panel">
-          <div className="profile-header">
-            <div className="profile-avatar-container relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              {profileImage ? (
-                <img src={profileImage} alt="Profile" className="w-24 h-24 rounded-full object-cover border-2 border-indigo-500" />
-              ) : (
-                <div className="profile-avatar w-24 h-24 rounded-full bg-gray-800 flex items-center justify-center border-2 border-indigo-500">
-                  <User size={48} className="text-indigo-400" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera size={24} className="text-white" />
-              </div>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-            </div>
-            <div className="profile-info mt-4 text-center">
-              <h2>{user?.fullName || 'John Doe'}</h2>
-              <p className="text-gray-400">{user?.email || 'john@example.com'}</p>
-              <span className="badge badge-primary mt-2">Premium Member</span>
-            </div>
-          </div>
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg flex items-center gap-2 mb-4 text-sm">
+          <AlertCircle size={16} />
+          {error}
         </div>
+      )}
 
+      {success && (
+        <div className="bg-green-500/10 border border-green-500/50 text-green-500 p-3 rounded-lg flex items-center gap-2 mb-4 text-sm">
+          <CheckCircle size={16} />
+          {success}
+        </div>
+      )}
+
+      <div className="profile-grid">
+        {/* Profile Card */}
         <div className="profile-card glass-panel relative">
-          <div className="card-title flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <MapPin size={20} className="icon-accent" />
-              <h3>Saved Addresses</h3>
+          <div className="profile-card-header">
+            <div className="profile-header-main">
+              <div className="profile-avatar">
+                <UserIcon size={32} />
+              </div>
+              <div>
+                <h2>{fullName || 'User Profile'}</h2>
+                <p className="subtitle">{email}</p>
+                <span className="badge" style={{ display: 'inline-block', fontSize: '0.7rem', textTransform: 'uppercase', marginTop: '0.25rem' }}>
+                  {role}
+                </span>
+              </div>
             </div>
-            {!showAddressForm && (
-              <button className="btn-icon" onClick={() => setShowAddressForm(true)}>
-                <Plus size={20} />
+            {!isEditingProfile && (
+              <button 
+                onClick={() => setIsEditingProfile(true)} 
+                className="edit-icon-btn" 
+                title="Edit Details"
+              >
+                <Edit3 size={18} />
               </button>
             )}
           </div>
-          
-          <div className="saved-address mt-4">
-            {addresses.length > 0 ? (
-              addresses.map((addr: any, index: number) => (
-                <div key={index} className="mb-4 p-4 rounded-lg bg-gray-800/50 border border-gray-700">
-                  <p className="text-indigo-400 font-semibold mb-1">{addr.label || 'Home'}</p>
-                  <p className="text-gray-300 text-sm">{addr.line1}</p>
-                  <p className="text-gray-400 text-sm">{addr.city}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400">No addresses saved.</p>
-            )}
-          </div>
 
-          {showAddressForm && (
-            <div className="mt-4 p-4 rounded-lg bg-gray-800 border border-indigo-500/30">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="font-semibold text-white">Add New Address</h4>
-                <button onClick={() => setShowAddressForm(false)} className="text-gray-400 hover:text-white"><X size={16}/></button>
+          {isEditingProfile ? (
+            <form onSubmit={handleSaveProfile} className="profile-edit-form mt-6">
+              <div className="form-group-custom">
+                <label className="label-custom">Full Name</label>
+                <input 
+                  type="text" 
+                  value={fullName} 
+                  onChange={(e) => setFullName(e.target.value)} 
+                  required
+                  className="input-custom"
+                />
               </div>
-              <input type="text" placeholder="Label (e.g. Work, Home)" className="w-full mb-3 p-2 bg-gray-900 rounded border border-gray-700 text-sm" value={newAddress.label} onChange={e => setNewAddress({...newAddress, label: e.target.value})} />
-              <input type="text" placeholder="Street Address" className="w-full mb-3 p-2 bg-gray-900 rounded border border-gray-700 text-sm" value={newAddress.line1} onChange={e => setNewAddress({...newAddress, line1: e.target.value})} />
-              <input type="text" placeholder="City" className="w-full mb-4 p-2 bg-gray-900 rounded border border-gray-700 text-sm" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} />
-              <button className="btn-primary w-full text-sm py-2" onClick={handleAddAddress}>Save Address</button>
+
+              <div className="form-group-custom mt-4">
+                <label className="label-custom">Phone Number</label>
+                <input 
+                  type="text" 
+                  value={phone} 
+                  onChange={(e) => setPhone(e.target.value)} 
+                  placeholder="+91 99999 99999"
+                  className="input-custom"
+                />
+              </div>
+
+              <div className="form-actions-row mt-6">
+                <button type="button" onClick={() => setIsEditingProfile(false)} className="btn-cancel">
+                  <X size={16} /> Cancel
+                </button>
+                <button type="submit" className="btn-save" disabled={saving}>
+                  <Save size={16} /> {saving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="profile-details-display mt-6">
+              <div className="detail-item">
+                <span className="detail-label">Phone Number</span>
+                <span className="detail-value">{phone || 'Not provided'}</span>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="profile-card glass-panel">
-          <div className="card-title">
-            <CreditCard size={20} className="icon-accent" />
-            <h3>Payment Methods</h3>
+        {/* Address Card */}
+        <div className="profile-card glass-panel relative">
+          <div className="profile-card-header">
+            <div className="card-title">
+              <MapPin size={20} className="icon-accent" />
+              <h3>Saved Addresses</h3>
+            </div>
+            {!isEditingAddress && (
+              <button 
+                onClick={() => {
+                  setEditAddress(address);
+                  setIsEditingAddress(true);
+                }} 
+                className="edit-icon-btn" 
+                title="Edit Address"
+              >
+                <Edit3 size={18} />
+              </button>
+            )}
           </div>
-          <div className="saved-payment mt-4">
-            <p><strong>Visa ending in 4242</strong></p>
-            <p className="subtitle">Expires 12/25</p>
+
+          {isEditingAddress ? (
+            <form onSubmit={handleSaveAddress} className="profile-edit-form mt-4">
+              <div className="form-group-custom">
+                <label className="label-custom">Address Label</label>
+                <input 
+                  type="text" 
+                  value={editAddress.label} 
+                  onChange={(e) => setEditAddress({ ...editAddress, label: e.target.value })} 
+                  required
+                  className="input-custom"
+                />
+              </div>
+              <div className="form-group-custom mt-3">
+                <label className="label-custom">Street Line 1</label>
+                <input 
+                  type="text" 
+                  value={editAddress.line1} 
+                  onChange={(e) => setEditAddress({ ...editAddress, line1: e.target.value })} 
+                  required
+                  className="input-custom"
+                />
+              </div>
+              <div className="form-group-custom mt-3">
+                <label className="label-custom">Street Line 2</label>
+                <input 
+                  type="text" 
+                  value={editAddress.line2} 
+                  onChange={(e) => setEditAddress({ ...editAddress, line2: e.target.value })} 
+                  className="input-custom"
+                  placeholder="Apartment, Suite, Block, etc."
+                />
+              </div>
+              <div className="date-picker-group mt-3">
+                <div className="form-group-custom">
+                  <label className="label-custom">City</label>
+                  <input 
+                    type="text" 
+                    value={editAddress.city} 
+                    onChange={(e) => setEditAddress({ ...editAddress, city: e.target.value })} 
+                    required
+                    className="input-custom"
+                  />
+                </div>
+                <div className="form-group-custom">
+                  <label className="label-custom">Postal Code</label>
+                  <input 
+                    type="text" 
+                    value={editAddress.postalCode} 
+                    onChange={(e) => setEditAddress({ ...editAddress, postalCode: e.target.value })} 
+                    required
+                    className="input-custom"
+                  />
+                </div>
+              </div>
+              <div className="form-group-custom mt-3">
+                <label className="label-custom">State</label>
+                <input 
+                  type="text" 
+                  value={editAddress.state} 
+                  onChange={(e) => setEditAddress({ ...editAddress, state: e.target.value })} 
+                  required
+                  className="input-custom"
+                />
+              </div>
+
+              <div className="form-actions-row mt-4">
+                <button type="button" onClick={() => setIsEditingAddress(false)} className="btn-cancel">
+                  <X size={16} /> Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  <Save size={16} /> Save
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="saved-address-display mt-4">
+              <p className="address-label"><strong>{address.label}</strong></p>
+              <p className="subtitle mt-1">
+                {address.line1}
+                {address.line2 && <><br />{address.line2}</>}
+                <br />
+                {address.city}, {address.state} - {address.postalCode}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Payment Card */}
+        <div className="profile-card glass-panel relative">
+          <div className="profile-card-header">
+            <div className="card-title">
+              <CreditCard size={20} className="icon-accent" />
+              <h3>Payment Methods</h3>
+            </div>
+            {!isEditingPayment && (
+              <button 
+                onClick={() => {
+                  setEditPayment({
+                    ...payment,
+                    cardNumber: `•••• •••• •••• ${payment.last4}`,
+                    cvv: '•••'
+                  });
+                  setIsEditingPayment(true);
+                }} 
+                className="edit-icon-btn" 
+                title="Edit Payment"
+              >
+                <Edit3 size={18} />
+              </button>
+            )}
           </div>
-          <button className="btn-secondary mt-4">Add Payment Method</button>
+
+          {isEditingPayment ? (
+            <form onSubmit={handleSavePayment} className="profile-edit-form mt-4">
+              <div className="form-group-custom">
+                <label className="label-custom">Cardholder Name</label>
+                <input 
+                  type="text" 
+                  value={editPayment.cardholder} 
+                  onChange={(e) => setEditPayment({ ...editPayment, cardholder: e.target.value })} 
+                  required
+                  className="input-custom"
+                />
+              </div>
+              <div className="form-group-custom mt-3">
+                <label className="label-custom">Card Number</label>
+                <input 
+                  type="text" 
+                  value={editPayment.cardNumber} 
+                  onChange={(e) => setEditPayment({ ...editPayment, cardNumber: e.target.value })} 
+                  required
+                  className="input-custom"
+                  maxLength={19}
+                  placeholder="4111 1111 1111 4242"
+                />
+              </div>
+              <div className="date-picker-group mt-3">
+                <div className="form-group-custom">
+                  <label className="label-custom">Expiry Date</label>
+                  <input 
+                    type="text" 
+                    value={editPayment.expiry} 
+                    onChange={(e) => setEditPayment({ ...editPayment, expiry: e.target.value })} 
+                    required
+                    className="input-custom"
+                    placeholder="MM/YY"
+                    maxLength={5}
+                  />
+                </div>
+                <div className="form-group-custom">
+                  <label className="label-custom">CVV</label>
+                  <input 
+                    type="password" 
+                    value={editPayment.cvv} 
+                    onChange={(e) => setEditPayment({ ...editPayment, cvv: e.target.value })} 
+                    required
+                    className="input-custom"
+                    maxLength={4}
+                    placeholder="•••"
+                  />
+                </div>
+              </div>
+
+              <div className="form-actions-row mt-4">
+                <button type="button" onClick={() => setIsEditingPayment(false)} className="btn-cancel">
+                  <X size={16} /> Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  <Save size={16} /> Save
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="saved-payment-display mt-4">
+              <p className="cardholder-name"><strong>{payment.cardholder}</strong></p>
+              <div className="payment-details mt-2">
+                <p className="subtitle">{payment.cardType} ending in {payment.last4}</p>
+                <p className="subtitle text-xs">Expires {payment.expiry}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
