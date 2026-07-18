@@ -49,21 +49,25 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const response = await authApi.register({ 
-        fullName: `${firstName} ${lastName}`.trim(), 
-        email, 
+      const response = await authApi.register({
+        fullName: `${firstName} ${lastName}`.trim(),
+        email,
         password,
         role: 'CUSTOMER'
       });
       if (response?.data?.token) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        window.dispatchEvent(new Event('local-storage-update'));
+        console.log("hi");
         navigate('/');
       } else {
         setError('Failed to register account');
       }
     } catch (err: any) {
       setError(err.message || 'Error creating account.');
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   };
@@ -88,12 +92,12 @@ const Signup = () => {
             <label>First Name</label>
             <div className="input-with-icon">
               <User size={18} className="input-icon" />
-              <input 
-                type="text" 
-                placeholder="First Name" 
+              <input
+                type="text"
+                placeholder="First Name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                required 
+                required
               />
             </div>
           </div>
@@ -102,40 +106,40 @@ const Signup = () => {
             <label>Last Name</label>
             <div className="input-with-icon">
               <User size={18} className="input-icon" />
-              <input 
-                type="text" 
-                placeholder="Last Name" 
+              <input
+                type="text"
+                placeholder="Last Name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                required 
+                required
               />
             </div>
           </div>
-          
+
           <div className="form-group">
             <label>Email ID</label>
             <div className="input-with-icon">
               <Mail size={18} className="input-icon" />
-              <input 
-                type="email" 
-                placeholder="john@example.com" 
+              <input
+                type="email"
+                placeholder="john@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required 
+                required
               />
             </div>
           </div>
-          
+
           <div className="form-group">
             <label>Password</label>
             <div className="input-with-icon">
               <Lock size={18} className="input-icon" />
-              <input 
-                type="password" 
-                placeholder="••••••••" 
+              <input
+                type="password"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required 
+                required
               />
             </div>
           </div>
@@ -144,18 +148,18 @@ const Signup = () => {
             <label>Confirm Password</label>
             <div className="input-with-icon">
               <Lock size={18} className="input-icon" />
-              <input 
-                type="password" 
-                placeholder="••••••••" 
+              <input
+                type="password"
+                placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required 
+                required
               />
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn-primary w-full justify-center mt-4"
             disabled={loading}
           >
@@ -169,7 +173,7 @@ const Signup = () => {
               Become a vendor
             </Link>
           </div>
-          
+
           <p className="secure-payment-note text-center">
             Already have an account? <Link to="/login" className="text-gradient-accent">Login here</Link>
           </p>
