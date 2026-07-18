@@ -33,7 +33,7 @@ services:
     container_name: rental-backend
     restart: always
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -94,7 +94,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:5000/api/v1
+      - REACT_APP_API_URL=http://localhost:5001/api/v1
     depends_on:
       - backend
     networks:
