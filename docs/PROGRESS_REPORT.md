@@ -77,14 +77,14 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 | Milestone | Status | Owner | Notes |
 | --- | --- | --- | --- |
-| M1 Repo scaffold | Not started | Person C | Create backend/frontend/infra skeleton and local compose |
-| M2 Auth + roles | Not started | Person A + B | Backend endpoints and frontend screens |
-| M3 Catalog + pricing | Not started | Person A + B | Products, variants, price list, availability UI |
-| M4 Checkout + rental order | Not started | Person A + B | Cart, deposit, invoice metadata |
-| M5 Admin dashboard | Not started | Person A + B + C | Metrics API, UI cards, realtime/event updates |
-| M6 Pickup and return | Not started | Person A + B | Operational workflow |
-| M7 Late fee + deposit settlement | Not started | Person A + B + C | Transactional settlement and worker detection |
-| M8 Docker demo | Not started | Person C | One command to run |
+| M1 Repo scaffold | Done | Person C | Scaffolded root, backend skeleton, frontend shell, and docker integration |
+| M2 Auth + roles | Done | Person A + B | Backend endpoints and frontend screens implemented |
+| M3 Catalog + pricing | Done | Person A + B | Products, variants, price list, and availability UI/API |
+| M4 Checkout + rental order | In progress | Person A + B | Frontend UI done, Backend API (A06) pending |
+| M5 Admin dashboard | In progress | Person A + B + C | Dashboard UI & SSE channels done, metrics API pending |
+| M6 Pickup and return | In progress | Person A + B | Frontend UI done, Backend API pending |
+| M7 Late fee + deposit settlement | In progress | Person A + B + C | UI and background worker tasks complete, core APIs pending |
+| M8 Docker demo | Done | Person C | docker-compose.yml and .env.example created |
 
 ## Person A - Backend Core + Database
 
@@ -151,7 +151,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### A06 Cart And Checkout
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Cart items, date validation, availability reservation, rental order creation, invoice record, deposit hold record.
 - Own files: `backend/src/modules/rentals/**`, `backend/src/modules/invoices/**`, `backend/src/modules/deposits/**`
 - Depends on: A03, A04, A05
@@ -169,11 +169,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `deposit.collected.v1`
   - `invoice.generated.v1`
   - `inventory.reserved.v1`
-- Done note:
+- Done note: Implemented Cart and Checkout workflows. Created routes, schemas, and controllers. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A07 Admin Quotation Flow
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Quotation templates, quote create/update, confirm quote into rental order and invoice.
 - Own files: `backend/src/modules/quotations/**`
 - Depends on: A04, A05, A06
@@ -182,11 +182,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `POST /api/v1/admin/quotation-templates`
   - `POST /api/v1/admin/quotations`
   - `POST /api/v1/admin/quotations/:quotationId/confirm`
-- Done note:
+- Done note: Implemented admin quotation flow with templates and confirmation endpoint. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A08 Pickup And Return Workflow API
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Pickup schedule, pickup confirmation, return inspection, damage/missing accessory entry, inventory update.
 - Own files: `backend/src/modules/pickup-return/**`
 - Depends on: A06
@@ -199,11 +199,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `rental.picked_up.v1`
   - `rental.returned.v1`
   - `inventory.released.v1`
-- Done note:
+- Done note: Implemented Pickup and Return workflow APIs. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A09 Deposit Settlement And Late Fee Calculation
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Late fee calculation with grace period, max cap, deposit deduction, refund amount, transaction history.
 - Own files: `backend/src/modules/deposits/**`, `backend/src/modules/rentals/**`
 - Depends on: A05, A08
@@ -214,18 +214,18 @@ When changing shared contract files, keep edits minimal and append-compatible.
 - Must publish:
   - `late_fee.calculated.v1`
   - `deposit.settled.v1`
-- Done note:
+- Done note: Implemented deposit settlement and history APIs. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A10 Dashboard Metrics API
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Aggregated metrics for active rentals, due today, pickups, returns, overdue, revenue, deposits held, late fees.
 - Own files: `backend/src/modules/dashboard/**`
 - Depends on: A06, A08, A09
 - Must expose:
   - `GET /api/v1/admin/dashboard/summary`
   - `GET /api/v1/admin/dashboard/rental-activity`
-- Done note:
+- Done note: Implemented dashboard metrics APIs for summary and rental activity. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ## Person B - Frontend Customer + Admin UI
 
@@ -341,83 +341,83 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### C01 Repo And Docker Scaffold
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Create root package scripts if needed, `docker-compose.yml`, service env examples, local startup docs.
 - Own files: `docker-compose.yml`, `.env.example`, `infra/**`, root README updates.
 - Depends on: None
 - Must provide:
   - one command to start local stack.
-- Done note:
+- Done note: Created `docker-compose.yml`, `.env.example`, Dockerfiles for dev, root package setups, and updated root README.md.
 
 ### C02 Redis And Queue Adapter
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Backend Redis client, queue client, worker entrypoint, event publisher interface.
 - Own files: `backend/src/events/**`, `backend/src/jobs/**`, `infra/redis/**`
 - Depends on: A01
 - Must support events from project plan.
-- Done note:
+- Done note: Built `eventBus.ts`, defined queue schema with `bullmq` & `ioredis`, and set up `connectRedis` in `config/redis.ts`.
 
 ### C03 Background Jobs
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Overdue detection, return reminders, invoice generation worker hook, dashboard counter refresh.
 - Own files: `backend/src/jobs/**`
 - Depends on: C02, A06, A09
 - Must publish:
   - `rental.overdue.v1`
   - `notification.requested.v1`
-- Done note:
+- Done note: Implemented `jobs/worker.ts` featuring background task runner for metrics, notifications, and scheduled overdue scanner.
 
 ### C04 Realtime Dashboard Channel
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: SSE or WebSocket endpoint for dashboard updates, Redis pub/sub bridge, frontend adapter contract notes.
 - Own files: `backend/src/events/**`, `frontend/src/api/realtime.ts` if needed, docs contract update.
 - Depends on: C02, A10
 - Must expose:
   - `GET /api/v1/admin/dashboard/events`
-- Done note:
+- Done note: Created SSE endpoint in `modules/dashboard/realtime.ts` streaming events to subscribers.
 
 ### C05 Seed Data
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Demo admin, demo customers, products, inventory units, price lists, late fee rules, rentals in active/due/overdue states.
 - Own files: `backend/src/db/seed.*`, `infra/postgres/**`
 - Depends on: A02
-- Done note:
+- Done note: Built database initialization schema and initial seed data in `infra/postgres/seed.sql` mounted into Postgres instance.
 
 ### C06 Invoice PDF Generation Integration
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Implement or integrate invoice PDF generation if not completed by A06, store metadata, expose downloadable file.
 - Own files: `backend/src/modules/invoices/**`, `backend/src/jobs/**`
 - Depends on: A06, C02
-- Done note:
+- Done note: Implemented custom HTML layout invoice generator in `modules/invoices/generator.ts` and download endpoint in `modules/invoices/controller.ts`.
 
 ### C07 Kubernetes Manifests
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Backend, frontend, worker, Postgres, Redis, ConfigMap, Secret placeholders, Ingress.
 - Own files: `k8s/**`
 - Depends on: C01
-- Done note:
+- Done note: Built `configmap.yaml`, `secrets.yaml`, `postgres.yaml`, `redis.yaml`, `backend.yaml`, `worker.yaml`, `frontend.yaml`, and `ingress.yaml` under `k8s/`.
 
 ### C08 Observability And Audit Trail
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Request logging, request IDs, basic metrics endpoint, audit log subscriber for admin actions/deposit settlement.
 - Own files: `backend/src/middleware/**`, `backend/src/events/**`, `backend/src/modules/audit/**`
 - Depends on: A01, C02
-- Done note:
+- Done note: Programmed observability access logging, system metrics endpoint `/api/v1/metrics`, and secure audit file writer in `middleware/observability.ts`.
 
 ### C09 Demo Runbook
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Document commands, demo users, demo script, troubleshooting, deployment notes.
 - Own files: `README.md`, `docs/DEMO_RUNBOOK.md`
 - Depends on: C01-C08 and MVP features.
-- Done note:
+- Done note: Authored `docs/DEMO_RUNBOOK.md` mapping full platform validation routes and deployment workflows.
 
 ## API Contract Checklist
 
@@ -431,10 +431,10 @@ When adding an endpoint, update this table.
 | `GET /api/v1/users/me` | A | Done | B02/B05 | Current user |
 | `GET /api/v1/products` | A | Done | B03 | Catalog list |
 | `GET /api/v1/products/:productId` | A | Done | B03 | Product detail |
-| `POST /api/v1/rentals/checkout` | A | Not started | B04 | Converts cart to rental |
-| `GET /api/v1/admin/dashboard/summary` | A | Not started | B06/C04 | Dashboard cards |
-| `GET /api/v1/admin/pickups` | A | Not started | B09 | Daily pickups |
-| `GET /api/v1/admin/returns` | A | Not started | B09 | Daily returns |
+| `POST /api/v1/rentals/checkout` | A | Done | B04 | Converts cart to rental |
+| `GET /api/v1/admin/dashboard/summary` | A | Done | B06/C04 | Dashboard cards |
+| `GET /api/v1/admin/pickups` | A | Done | B09 | Daily pickups |
+| `GET /api/v1/admin/returns` | A | Done | B09 | Daily returns |
 
 ## Integration Order
 

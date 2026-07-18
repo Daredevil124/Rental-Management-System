@@ -11,6 +11,12 @@ import { authRouter } from './modules/auth/auth.routes.js';
 import { productsRouter } from './modules/products/products.routes.js';
 import { pricingRouter } from './modules/pricing/pricing.routes.js';
 import { usersRouter } from './modules/users/users.routes.js';
+import cartRouter from './modules/cart/cart.routes.js';
+import rentalsRouter from './modules/rentals/rentals.routes.js';
+import quotationsRouter from './modules/quotations/quotations.routes.js';
+import pickupReturnRouter from './modules/pickup-return/pickup-return.routes.js';
+import depositsRouter from './modules/deposits/deposits.routes.js';
+import dashboardRouter from './modules/dashboard/dashboard.routes.js';
 import { handleDashboardEvents } from './modules/dashboard/realtime.js';
 import { downloadInvoice } from './modules/invoices/controller.js';
 
@@ -32,6 +38,12 @@ export const createApp = () => {
   app.use(`/api/${env.apiVersion}/users`, usersRouter);
   app.use(`/api/${env.apiVersion}`, productsRouter);
   app.use(`/api/${env.apiVersion}`, pricingRouter);
+  app.use(`/api/${env.apiVersion}/cart`, cartRouter);
+  app.use(`/api/${env.apiVersion}/rentals`, rentalsRouter);
+  app.use(`/api/${env.apiVersion}`, quotationsRouter);
+  app.use(`/api/${env.apiVersion}`, pickupReturnRouter);
+  app.use(`/api/${env.apiVersion}`, depositsRouter);
+  app.use(`/api/${env.apiVersion}`, dashboardRouter);
   
   // Realtime SSE event channel (C04)
   app.get(`/api/${env.apiVersion}/admin/dashboard/events`, handleDashboardEvents);
@@ -60,7 +72,6 @@ export const createApp = () => {
       }
     });
   });
-
   app.use(notFoundMiddleware);
   app.use(errorHandler);
 

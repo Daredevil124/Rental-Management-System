@@ -4,9 +4,11 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install --legacy-peer-deps --ignore-scripts
 
 COPY . .
+
+RUN npx prisma generate
 
 EXPOSE 5000
 
