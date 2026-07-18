@@ -1,0 +1,111 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: rental-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: rental_admin
+      POSTGRES_PASSWORD: rental_secure_pass_2026
+      POSTGRES_DB: rental_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+    networks:
+      - rental-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: rental-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rental-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: rental-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - PORT=5000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=rental_admin
+      - DB_PASSWORD=rental_secure_pass_2026
+      - DB_NAME=rental_db
+      - DATABASE_URL=postgresql://rental_admin:rental_secure_pass_2026@postgres:5432/rental_db?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=super_secret_jwt_key_for_rental_system_2026
+      - NODE_ENV=development
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - rental-network
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: rental-worker
+    restart: always
+    command: npm run dev:worker
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=rental_admin
+      - DB_PASSWORD=rental_secure_pass_2026
+      - DB_NAME=rental_db
+      - DATABASE_URL=postgresql://rental_admin:rental_secure_pass_2026@postgres:5432/rental_db?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=super_secret_jwt_key_for_rental_system_2026
+      - NODE_ENV=development
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - rental-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: rental-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api/v1
+    depends_on:
+      - backend
+    networks:
+      - rental-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  rental-network:
+    driver: bridge

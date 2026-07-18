@@ -11,6 +11,8 @@ import { authRouter } from './modules/auth/auth.routes.js';
 import { productsRouter } from './modules/products/products.routes.js';
 import { pricingRouter } from './modules/pricing/pricing.routes.js';
 import { usersRouter } from './modules/users/users.routes.js';
+import { handleDashboardEvents } from './modules/dashboard/realtime.js';
+import { downloadInvoice } from './modules/invoices/controller.js';
 
 export const createApp = () => {
   const app = express();
@@ -30,6 +32,35 @@ export const createApp = () => {
   app.use(`/api/${env.apiVersion}/users`, usersRouter);
   app.use(`/api/${env.apiVersion}`, productsRouter);
   app.use(`/api/${env.apiVersion}`, pricingRouter);
+  
+  // Realtime SSE event channel (C04)
+  app.get(`/api/${env.apiVersion}/admin/dashboard/events`, handleDashboardEvents);
+  
+  // Invoice download handler (C06)
+  app.get(`/api/${env.apiVersion}/rentals/:rentalId/invoice`, downloadInvoice);
+
+  // System Metrics endpoint (C08)
+  app.get(`/api/${env.apiVersion}/metrics`, (req, res) => {
+    const memoryUsage = process.memoryUsage();
+    res.status(200).json({
+      success: true,
+      data: {
+        uptime: process.uptime(),
+        memory: {
+          rss: `${Math.round(memoryUsage.rss / 1024 / 1024 * 100) / 100} MB`,
+          heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024 * 100) / 100} MB`,
+          heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024 * 100) / 100} MB`,
+          external: `${Math.round(memoryUsage.external / 1024 / 1024 * 100) / 100} MB`,
+        },
+        cpu: process.cpuUsage(),
+        nodeVersion: process.version,
+      },
+      meta: {
+        requestId: req.headers["x-request-id"]
+      }
+    });
+  });
+
   app.use(notFoundMiddleware);
   app.use(errorHandler);
 
