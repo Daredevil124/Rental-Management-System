@@ -38,6 +38,20 @@ export class AuthController {
       next(error);
     }
   }
+
+  async verifyEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        res.status(400).json({ error: { message: 'Email parameter is required' } });
+        return;
+      }
+      const result = await authService.verifyEmail(email);
+      res.status(200).json({ data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

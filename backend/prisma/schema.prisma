@@ -10,6 +10,7 @@ datasource db {
 enum UserRole {
   CUSTOMER
   ADMIN
+  VENDOR
 }
 
 enum InventoryStatus {
@@ -139,6 +140,9 @@ model User {
   fullName     String   @map("full_name") @db.VarChar(160)
   phone        String?  @db.VarChar(32)
   profileImage String?  @map("profile_image") @db.VarChar(512)
+  companyName  String?  @map("company_name") @db.VarChar(255)
+  productCategory String? @map("product_category") @db.VarChar(255)
+  gstNo        String?  @map("gst_no") @db.VarChar(50)
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)

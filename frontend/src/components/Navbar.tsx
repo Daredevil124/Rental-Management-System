@@ -9,7 +9,7 @@ const Navbar = () => {
   return (
     <nav className="navbar glass-panel">
       <div className="navbar-container container">
-        <Link to="/" className="navbar-logo">
+        <Link to={isAdmin ? "/admin" : "/catalog"} className="navbar-logo">
           <PackageSearch size={28} className="logo-icon" />
           <span className="text-gradient-accent font-outfit font-bold text-xl">RentOps</span>
         </Link>
@@ -52,7 +52,7 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/" className="nav-link">Catalog</Link>
+              <Link to="/catalog" className="nav-link">Catalog</Link>
               <Link to="/orders" className="nav-link">My Rentals</Link>
               {localStorage.getItem('token') ? (
                 <button 
