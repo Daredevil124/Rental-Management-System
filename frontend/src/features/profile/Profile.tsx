@@ -1,0 +1,56 @@
+import './Profile.css';
+import { User, MapPin, CreditCard } from 'lucide-react';
+
+const Profile = () => {
+  return (
+    <div className="profile-container animate-fade-in">
+      <h1 className="text-gradient">My Profile</h1>
+      
+      <div className="profile-grid">
+        <div className="profile-card glass-panel">
+          <div className="profile-header">
+            <div className="profile-avatar">
+              <User size={32} />
+            </div>
+            <div>
+              <h2>John Doe</h2>
+              <p className="subtitle">john.doe@example.com</p>
+            </div>
+          </div>
+          
+          <div className="form-group mt-4">
+            <label>Phone Number</label>
+            <input type="text" defaultValue="+91 98765 43210" />
+          </div>
+          <button className="btn-secondary mt-4">Save Changes</button>
+        </div>
+
+        <div className="profile-card glass-panel">
+          <div className="card-title">
+            <MapPin size={20} className="icon-accent" />
+            <h3>Saved Addresses</h3>
+          </div>
+          <div className="saved-address mt-4">
+            <p><strong>Home</strong></p>
+            <p className="subtitle">123 Main St, Apartment 4B<br/>Mumbai, Maharashtra 400001</p>
+          </div>
+          <button className="btn-secondary mt-4">Add New Address</button>
+        </div>
+
+        <div className="profile-card glass-panel">
+          <div className="card-title">
+            <CreditCard size={20} className="icon-accent" />
+            <h3>Payment Methods</h3>
+          </div>
+          <div className="saved-payment mt-4">
+            <p><strong>Visa ending in 4242</strong></p>
+            <p className="subtitle">Expires 12/25</p>
+          </div>
+          <button className="btn-secondary mt-4">Add Payment Method</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;

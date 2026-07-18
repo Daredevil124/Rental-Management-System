@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, PackageSearch, LayoutDashboard, Truck } from 'lucide-react';
+import { ShoppingCart, User, PackageSearch, LayoutDashboard, Truck, FileText, Tag } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -25,20 +25,32 @@ const Navbar = () => {
                 <Truck size={20} />
                 <span>Operations</span>
               </Link>
+              <Link to="/admin/products" className={`nav-link ${location.pathname === '/admin/products' ? 'active' : ''}`}>
+                <PackageSearch size={20} />
+                <span>Products</span>
+              </Link>
+              <Link to="/admin/quotations" className={`nav-link ${location.pathname === '/admin/quotations' ? 'active' : ''}`}>
+                <FileText size={20} />
+                <span>Quotes</span>
+              </Link>
+              <Link to="/admin/pricing" className={`nav-link ${location.pathname === '/admin/pricing' ? 'active' : ''}`}>
+                <Tag size={20} />
+                <span>Pricing</span>
+              </Link>
             </>
           ) : (
             <>
               <Link to="/" className="nav-link">Catalog</Link>
-              <Link to="/login" className="nav-link">Login</Link>
+              <Link to="/orders" className="nav-link">My Rentals</Link>
               <Link to="/cart" className="cart-btn">
                 <ShoppingCart size={20} />
                 <span className="cart-badge">1</span>
               </Link>
             </>
           )}
-          <div className="user-profile">
+          <Link to="/profile" className="user-profile">
             <User size={24} />
-          </div>
+          </Link>
         </div>
       </div>
     </nav>

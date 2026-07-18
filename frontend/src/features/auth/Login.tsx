@@ -1,6 +1,6 @@
 import './Login.css';
 import { ArrowRight, User, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -46,6 +46,10 @@ const Login = () => {
           <button type="submit" className="btn-primary w-full justify-center mt-4">
             Sign In <ArrowRight size={18} />
           </button>
+
+          <p className="secure-payment-note">
+            Don't have an account? <Link to="/signup" className="text-gradient-accent">Sign up here</Link>
+          </p>
         </form>
       </div>
     </div>
