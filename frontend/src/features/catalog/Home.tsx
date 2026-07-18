@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './Home.css';
-import { Filter, ArrowRight, X, Heart } from 'lucide-react';
+import { Filter, ArrowRight, X, Heart, Package } from 'lucide-react';
 import { productsApi } from '../../api/products';
 import type { Product } from '../../types/api';
 
@@ -217,8 +217,9 @@ const Home = () => {
                 >
                   <Heart size={16} fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} />
                 </button>
-                <div className="product-image-placeholder text-xs flex items-center justify-center text-gray-400">
-                  Image
+                <div className="product-image-placeholder">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-purple-500/5" />
+                  <Package size={48} />
                 </div>
                 <div className="product-info">
                   <h3>{product.name}</h3>

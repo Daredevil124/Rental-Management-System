@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './Wishlist.css';
-import { Heart, Trash2, ArrowLeft } from 'lucide-react';
+import { Heart, Trash2, ArrowLeft, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { productsApi } from '../../api/products';
 import type { Product } from '../../types/api';
@@ -82,8 +82,9 @@ const Wishlist = () => {
         <div className="wishlist-grid">
           {products.map(product => (
             <div key={product.id} className="wishlist-card glass-panel">
-              <div className="wishlist-card-image text-xs flex items-center justify-center text-gray-400">
-                Image
+              <div className="wishlist-card-image flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#a855f7]/5 to-[#6366f1]/5 opacity-30" />
+                <Package size={44} className="text-gray-400/40" />
               </div>
               <div className="wishlist-card-info">
                 <div className="wishlist-card-meta">

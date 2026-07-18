@@ -1,24 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* HSL Color Palette */
-  --bg-dark: 220 20% 8%;
-  --bg-card: 220 18% 12%;
-  --bg-card-hover: 220 18% 16%;
-  --bg-accent: 230 85% 60%;
-  --bg-accent-hover: 230 85% 65%;
-  --bg-accent-glow: 230 85% 60%;
+  /* HSL Color Palette - Cyberpunk Dark Premium */
+  --bg-dark: 224 25% 6%;
+  --bg-card: 224 20% 10%;
+  --bg-card-hover: 224 20% 14%;
+  --bg-accent: 262 83% 58%;
+  --bg-accent-hover: 262 83% 64%;
+  --bg-accent-glow: 262 83% 58%;
   
-  --text-primary: 0 0% 100%;
-  --text-secondary: 220 10% 70%;
-  --text-muted: 220 10% 50%;
+  --text-primary: 210 40% 98%;
+  --text-secondary: 215 20% 75%;
+  --text-muted: 215 16% 55%;
   
-  --border-subtle: 220 18% 20%;
-  --border-focus: 230 85% 60%;
+  --border-subtle: 224 20% 15%;
+  --border-focus: 262 83% 58%;
 
-  --success: 150 60% 45%;
-  --warning: 40 90% 55%;
-  --danger: 0 70% 55%;
+  --success: 142 70% 45%;
+  --warning: 38 92% 50%;
+  --danger: 350 80% 50%;
 
   /* Micro-animations */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -40,6 +40,23 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Premium Radial Mesh Gradient Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.03) 0%, transparent 60%);
+  z-index: -1;
+  pointer-events: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -52,7 +69,7 @@ h1, h2, h3, h4, h5, h6 {
 a {
   color: hsl(var(--bg-accent));
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
 a:hover {
@@ -68,23 +85,26 @@ button {
 
 /* Base Utility Classes */
 .glass-panel {
-  background: hsla(var(--bg-card), 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid hsla(var(--border-subtle), 0.5);
+  background: rgba(15, 22, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, hsl(var(--text-primary)) 0%, hsl(var(--text-secondary)) 100%);
+  background: linear-gradient(135deg, hsl(var(--text-primary)) 20%, hsl(var(--text-secondary)) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-accent {
-  background: linear-gradient(135deg, hsl(var(--bg-accent)) 0%, hsl(280, 85%, 60%) 100%);
+  background: linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #ec4899 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -92,7 +112,7 @@ button {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -111,12 +131,12 @@ button {
 /* Inputs */
 input, select, textarea {
   font-family: 'Inter', sans-serif;
-  background-color: hsla(var(--bg-dark), 0.8);
-  border: 1px solid hsl(var(--border-subtle));
+  background-color: rgba(10, 15, 30, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: hsl(var(--text-primary));
   padding: 0.75rem 1rem;
-  border-radius: 8px;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  border-radius: 10px;
+  transition: all var(--transition-normal);
   width: 100%;
 }
 
@@ -127,8 +147,9 @@ input[type="radio"], input[type="checkbox"] {
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: hsl(var(--border-focus));
-  box-shadow: 0 0 0 3px hsla(var(--border-focus), 0.2);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
+  background-color: rgba(10, 15, 30, 0.95) !important;
 }
 
 /* Custom Scrollbar */
@@ -142,10 +163,10 @@ input:focus, select:focus, textarea:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border-subtle));
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--text-muted));
+  background: rgba(255, 255, 255, 0.25);
 }
