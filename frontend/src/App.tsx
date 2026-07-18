@@ -16,6 +16,7 @@ import Profile from './features/profile/Profile';
 import AdminProducts from './features/admin-products/AdminProducts';
 import AdminQuotations from './features/admin-quotations/AdminQuotations';
 import AdminPricing from './features/admin-pricing/AdminPricing';
+import AdminUsers from './features/admin-users/AdminUsers';
 
 import { useState } from 'react';
 import SplashLoader from './features/splash/SplashScreen';
@@ -49,6 +50,7 @@ function App() {
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/quotations" element={<AdminQuotations />} />
             <Route path="/admin/pricing" element={<AdminPricing />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
           </Routes>
         </main>
       </div>

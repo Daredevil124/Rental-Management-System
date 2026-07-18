@@ -1,0 +1,23 @@
+.admin-users-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: hsl(var(--bg-card));
+  border: 1px solid hsl(var(--border-subtle));
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.search-bar input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: hsl(var(--text-primary));
+  width: 100%;
+  margin-left: 0.5rem;
+}
