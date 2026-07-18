@@ -42,6 +42,7 @@ const Navbar = () => {
             <>
               <Link to="/" className="nav-link">Catalog</Link>
               <Link to="/orders" className="nav-link">My Rentals</Link>
+              <Link to="/login" className="nav-link">Login</Link>
               <Link to="/cart" className="cart-btn">
                 <ShoppingCart size={20} />
                 <span className="cart-badge">1</span>
