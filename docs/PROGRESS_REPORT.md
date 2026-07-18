@@ -151,7 +151,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### A06 Cart And Checkout
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Cart items, date validation, availability reservation, rental order creation, invoice record, deposit hold record.
 - Own files: `backend/src/modules/rentals/**`, `backend/src/modules/invoices/**`, `backend/src/modules/deposits/**`
 - Depends on: A03, A04, A05
@@ -169,11 +169,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `deposit.collected.v1`
   - `invoice.generated.v1`
   - `inventory.reserved.v1`
-- Done note:
+- Done note: Implemented Cart and Checkout workflows. Created routes, schemas, and controllers. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A07 Admin Quotation Flow
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Quotation templates, quote create/update, confirm quote into rental order and invoice.
 - Own files: `backend/src/modules/quotations/**`
 - Depends on: A04, A05, A06
@@ -182,11 +182,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `POST /api/v1/admin/quotation-templates`
   - `POST /api/v1/admin/quotations`
   - `POST /api/v1/admin/quotations/:quotationId/confirm`
-- Done note:
+- Done note: Implemented admin quotation flow with templates and confirmation endpoint. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A08 Pickup And Return Workflow API
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Pickup schedule, pickup confirmation, return inspection, damage/missing accessory entry, inventory update.
 - Own files: `backend/src/modules/pickup-return/**`
 - Depends on: A06
@@ -199,11 +199,11 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `rental.picked_up.v1`
   - `rental.returned.v1`
   - `inventory.released.v1`
-- Done note:
+- Done note: Implemented Pickup and Return workflow APIs. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A09 Deposit Settlement And Late Fee Calculation
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Late fee calculation with grace period, max cap, deposit deduction, refund amount, transaction history.
 - Own files: `backend/src/modules/deposits/**`, `backend/src/modules/rentals/**`
 - Depends on: A05, A08
@@ -214,18 +214,18 @@ When changing shared contract files, keep edits minimal and append-compatible.
 - Must publish:
   - `late_fee.calculated.v1`
   - `deposit.settled.v1`
-- Done note:
+- Done note: Implemented deposit settlement and history APIs. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ### A10 Dashboard Metrics API
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Aggregated metrics for active rentals, due today, pickups, returns, overdue, revenue, deposits held, late fees.
 - Own files: `backend/src/modules/dashboard/**`
 - Depends on: A06, A08, A09
 - Must expose:
   - `GET /api/v1/admin/dashboard/summary`
   - `GET /api/v1/admin/dashboard/rental-activity`
-- Done note:
+- Done note: Implemented dashboard metrics APIs for summary and rental activity. Mounted to app.ts. Verification: `npm run typecheck` passed.
 
 ## Person B - Frontend Customer + Admin UI
 
@@ -431,10 +431,10 @@ When adding an endpoint, update this table.
 | `GET /api/v1/users/me` | A | Done | B02/B05 | Current user |
 | `GET /api/v1/products` | A | Done | B03 | Catalog list |
 | `GET /api/v1/products/:productId` | A | Done | B03 | Product detail |
-| `POST /api/v1/rentals/checkout` | A | Not started | B04 | Converts cart to rental |
-| `GET /api/v1/admin/dashboard/summary` | A | Not started | B06/C04 | Dashboard cards |
-| `GET /api/v1/admin/pickups` | A | Not started | B09 | Daily pickups |
-| `GET /api/v1/admin/returns` | A | Not started | B09 | Daily returns |
+| `POST /api/v1/rentals/checkout` | A | Done | B04 | Converts cart to rental |
+| `GET /api/v1/admin/dashboard/summary` | A | Done | B06/C04 | Dashboard cards |
+| `GET /api/v1/admin/pickups` | A | Done | B09 | Daily pickups |
+| `GET /api/v1/admin/returns` | A | Done | B09 | Daily returns |
 
 ## Integration Order
 
