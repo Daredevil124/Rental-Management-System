@@ -1,0 +1,104 @@
+.checkout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 4rem;
+}
+
+.checkout-content {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .checkout-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkout-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.checkout-card {
+  padding: 1.5rem;
+}
+
+.checkout-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-card-header h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.icon-accent {
+  color: hsl(var(--bg-accent));
+}
+
+.delivery-options {
+  display: flex;
+  gap: 1rem;
+}
+
+.delivery-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid hsla(var(--border-subtle), 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.delivery-option:hover {
+  background-color: hsla(var(--bg-card-hover), 0.5);
+}
+
+.delivery-option.active {
+  border-color: hsl(var(--border-focus));
+  background-color: hsla(var(--bg-accent), 0.1);
+}
+
+.payment-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.secure-payment-note {
+  font-size: 0.75rem;
+  color: hsl(var(--text-muted));
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.checkout-success {
+  text-align: center;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 600px;
+  margin: 4rem auto;
+}
+
+.success-icon {
+  color: hsl(var(--success));
+  margin-bottom: 1rem;
+}

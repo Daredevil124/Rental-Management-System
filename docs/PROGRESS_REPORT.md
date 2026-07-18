@@ -231,12 +231,12 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### B01 Frontend Scaffold
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: React app setup, routing, layout shells, API client, auth token storage, design tokens.
 - Own files: `frontend/**`
 - Depends on: None
 - Must include: customer layout and admin layout.
-- Done note:
+- Done note: Initialized Vite React app, configured React Router, global CSS for design system, and core app layout.
 
 ### B02 Auth Screens
 
@@ -263,7 +263,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### B04 Cart And Checkout UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Cart, date picker, delivery/store pickup selector, address selector, payment info form, price/deposit breakdown.
 - Own files: `frontend/src/features/cart/**`, `frontend/src/features/checkout/**`
 - Depends on: B03, A06 contract
@@ -271,7 +271,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `GET /api/v1/cart`
   - `POST /api/v1/cart/items`
   - `POST /api/v1/rentals/checkout`
-- Done note:
+- Done note: Created Cart and Checkout UI components with payment summary and success state.
 
 ### B05 Customer Orders, Profile, Invoice
 
@@ -317,7 +317,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### B09 Pickup And Return Operations UI
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Daily pickup board, daily return board, QR scan simulation, inspection form, damage/missing accessories, deposit settlement display.
 - Own files: `frontend/src/features/pickup-return/**`
 - Depends on: A08, A09 contracts
@@ -327,7 +327,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
   - `POST /api/v1/admin/rentals/:rentalId/confirm-pickup`
   - `POST /api/v1/admin/rentals/:rentalId/confirm-return`
   - `POST /api/v1/admin/rentals/:rentalId/settle-deposit`
-- Done note:
+- Done note: Implemented Operations Board with Pickups and Returns tabs, handling late fee warnings and action flows.
 
 ### B10 UI Polish And Demo Flow
 
