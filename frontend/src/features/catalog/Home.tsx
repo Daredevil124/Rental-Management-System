@@ -92,8 +92,8 @@ const Home = () => {
     }
     
     const prices = getPrices(selectedProduct);
+    const deposit = getDeposit(selectedProduct);
     const totalPrice = (prices.hourly * durationHours) + (prices.daily * durationDays) + (prices.weekly * durationWeeks);
-    const deposit = Math.round(totalPrice * 1.5);
     
     const cartItem = {
       id: Math.random().toString(36).substring(7),
@@ -146,6 +146,12 @@ const Home = () => {
     };
   };
 
+  const getDeposit = (product: any) => {
+    const depRule = product?.depositRules?.[0];
+    if (depRule) return parseFloat(depRule.amount);
+    const base = getBase(product);
+    return Math.round(base * 1.5);
+  };
 
   const getLocalMinDate = () => {
     const now = new Date();
@@ -265,7 +271,7 @@ const Home = () => {
                 </div>
               </div>
               <div className="modal-deposit-amount mt-3 text-center border-t border-gray-700 pt-3">
-                Security Deposit Hold (1.5x): <strong>₹{Math.round(((getPrices(selectedProduct).hourly * durationHours) + (getPrices(selectedProduct).daily * durationDays) + (getPrices(selectedProduct).weekly * durationWeeks)) * 1.5)}</strong>
+                Security Deposit Hold: <strong>₹{getDeposit(selectedProduct)}</strong>
               </div>
             </div>
 
