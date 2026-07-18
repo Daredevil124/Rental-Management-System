@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, PackageSearch, LayoutDashboard, Truck, FileText, Tag, LogOut } from 'lucide-react';
+import { ShoppingCart, User, PackageSearch, LayoutDashboard, Truck, FileText, Tag, LogOut, Heart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import './Navbar.css';
 
@@ -8,6 +8,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
   const checkSessionAndCart = () => {
     const storedUser = localStorage.getItem('user');
@@ -19,6 +20,14 @@ const Navbar = () => {
       setCartCount(items.length);
     } else {
       setCartCount(0);
+    }
+
+    const storedWishlist = localStorage.getItem('wishlist');
+    if (storedWishlist) {
+      const items = JSON.parse(storedWishlist);
+      setWishlistCount(items.length);
+    } else {
+      setWishlistCount(0);
     }
   };
 
@@ -38,8 +47,10 @@ const Navbar = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('cart');
+    localStorage.removeItem('wishlist');
     setUser(null);
     setCartCount(0);
+    setWishlistCount(0);
     window.dispatchEvent(new Event('local-storage-update'));
     navigate('/login');
   };
@@ -87,6 +98,10 @@ const Navbar = () => {
               <>
                 <Link to="/catalog" className={`nav-link ${location.pathname === '/catalog' || location.pathname === '/' ? 'active' : ''}`}>Catalog</Link>
                 <Link to="/orders" className={`nav-link ${location.pathname === '/orders' ? 'active' : ''}`}>My Rentals</Link>
+                <Link to="/wishlist" className="wishlist-btn mr-1" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <Heart size={20} />
+                  {wishlistCount > 0 && <span className="cart-badge" style={{ backgroundColor: 'hsl(var(--accent))' }}>{wishlistCount}</span>}
+                </Link>
                 <Link to="/cart" className="cart-btn">
                   <ShoppingCart size={20} />
                   {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
@@ -96,6 +111,10 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/catalog" className="nav-link">Catalog</Link>
+              <Link to="/wishlist" className="wishlist-btn mr-1" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <Heart size={20} />
+                {wishlistCount > 0 && <span className="cart-badge" style={{ backgroundColor: 'hsl(var(--accent))' }}>{wishlistCount}</span>}
+              </Link>
               <Link to="/login" className="nav-link">Login</Link>
             </>
           )}
