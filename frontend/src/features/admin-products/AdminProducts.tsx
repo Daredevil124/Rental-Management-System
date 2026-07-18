@@ -121,17 +121,35 @@ const AdminProducts = () => {
               <h3 className="text-lg font-medium text-indigo-400 mb-2 mt-6 border-b border-gray-700 pb-2">Pricing & Penalty Rules</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-1">Supported Rental Periods</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.rentalPeriods} onChange={e => setNewProduct({...newProduct, rentalPeriods: e.target.value})} placeholder="e.g. Daily, Weekly, Monthly" />
-                  <p className="text-xs text-gray-500 mt-1">Comma separated list of allowed periods for this product.</p>
+                  <label className="block text-gray-400 text-sm mb-1">Security Deposit</label>
+                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.depositRule} onChange={e => setNewProduct({...newProduct, depositRule: e.target.value})} placeholder="e.g. 20% or ₹5000" />
                 </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Security Deposit Rule</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.depositRule} onChange={e => setNewProduct({...newProduct, depositRule: e.target.value})} placeholder="e.g. 20% of product value" />
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1">Late Return Fee Rule</label>
-                  <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={newProduct.lateFeeRule} onChange={e => setNewProduct({...newProduct, lateFeeRule: e.target.value})} placeholder="e.g. ₹1000 / day" />
+                
+                <div className="bg-gray-800/50 p-3 rounded border border-gray-700 space-y-3">
+                  <label className="block text-gray-300 text-sm font-medium">Late Return Configuration</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1">Fee Type</label>
+                      <select className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.lateFeeUnit || 'Daily'} onChange={e => setNewProduct({...newProduct, lateFeeUnit: e.target.value})}>
+                        <option>Hourly</option>
+                        <option>Daily</option>
+                        <option>Weekly</option>
+                        <option>Monthly</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1">Amount (₹)</label>
+                      <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.lateFeeAmount || 500} onChange={e => setNewProduct({...newProduct, lateFeeAmount: Number(e.target.value)})} />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1">Grace Period (Minutes)</label>
+                      <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.gracePeriod || 120} onChange={e => setNewProduct({...newProduct, gracePeriod: Number(e.target.value)})} />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1">Maximum Cap (₹)</label>
+                      <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm" value={newProduct.maxFee || 5000} onChange={e => setNewProduct({...newProduct, maxFee: Number(e.target.value)})} />
+                    </div>
+                  </div>
                 </div>
               </div>
 
