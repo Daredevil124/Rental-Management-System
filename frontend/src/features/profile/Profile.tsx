@@ -1,7 +1,31 @@
+import { useState, useEffect } from 'react';
 import './Profile.css';
-import { User, MapPin, CreditCard } from 'lucide-react';
+import { User as UserIcon, MapPin, CreditCard } from 'lucide-react';
+import { authApi } from '../../api/auth';
+import { User } from '../../types/api';
 
 const Profile = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await authApi.getMe();
+        setUser(res.data as User);
+      } catch (err) {
+        console.error('Failed to fetch user', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading profile...</div>;
+  }
+
   return (
     <div className="profile-container animate-fade-in">
       <h1 className="text-gradient">My Profile</h1>
@@ -10,11 +34,11 @@ const Profile = () => {
         <div className="profile-card glass-panel">
           <div className="profile-header">
             <div className="profile-avatar">
-              <User size={32} />
+              <UserIcon size={32} />
             </div>
             <div>
-              <h2>John Doe</h2>
-              <p className="subtitle">john.doe@example.com</p>
+              <h2>{user?.name || 'User Name'}</h2>
+              <p className="subtitle">{user?.email || 'user@example.com'}</p>
             </div>
           </div>
           

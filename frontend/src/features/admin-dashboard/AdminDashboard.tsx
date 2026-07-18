@@ -1,7 +1,37 @@
+import { useState, useEffect } from 'react';
 import './AdminDashboard.css';
 import { Package, Clock, AlertTriangle, IndianRupee } from 'lucide-react';
+import { adminApi } from '../../api/admin';
 
 const AdminDashboard = () => {
+  const [summary, setSummary] = useState<any>(null);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const [summaryRes, activityRes] = await Promise.all([
+          adminApi.getDashboardSummary(),
+          adminApi.getRentalActivity()
+        ]);
+        setSummary(summaryRes.data);
+        setActivities(activityRes.data || []);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading dashboard metrics...</div>;
+  }
+
+  const data = summary || { activeRentals: 0, revenueToday: 0, dueToday: 0, overdue: 0 };
+
   return (
     <div className="admin-container animate-fade-in">
       <header className="admin-header">
@@ -16,7 +46,7 @@ const AdminDashboard = () => {
           </div>
           <div className="metric-content">
             <p className="metric-label">Active Rentals</p>
-            <h3 className="metric-value">42</h3>
+            <h3 className="metric-value">{data.activeRentals}</h3>
           </div>
         </div>
 
@@ -26,7 +56,7 @@ const AdminDashboard = () => {
           </div>
           <div className="metric-content">
             <p className="metric-label">Revenue Today</p>
-            <h3 className="metric-value">₹12,450</h3>
+            <h3 className="metric-value">₹{data.revenueToday}</h3>
           </div>
         </div>
 
@@ -36,7 +66,7 @@ const AdminDashboard = () => {
           </div>
           <div className="metric-content">
             <p className="metric-label">Returns Due Today</p>
-            <h3 className="metric-value">8</h3>
+            <h3 className="metric-value">{data.dueToday}</h3>
           </div>
         </div>
 
@@ -46,7 +76,7 @@ const AdminDashboard = () => {
           </div>
           <div className="metric-content">
             <p className="metric-label">Overdue Rentals</p>
-            <h3 className="metric-value text-danger">3</h3>
+            <h3 className="metric-value text-danger">{data.overdue}</h3>
           </div>
         </div>
       </div>
@@ -62,29 +92,25 @@ const AdminDashboard = () => {
               <tr>
                 <th>Order ID</th>
                 <th>Customer</th>
-                <th>Items</th>
                 <th>Status</th>
                 <th>Amount</th>
               </tr>
             </thead>
             <tbody>
-              {[
-                { id: 'ORD-001', name: 'Alice Smith', items: 2, status: 'Active', amount: '₹4,200' },
-                { id: 'ORD-002', name: 'Bob Johnson', items: 1, status: 'Overdue', amount: '₹1,500' },
-                { id: 'ORD-003', name: 'Charlie Brown', items: 4, status: 'Completed', amount: '₹8,900' },
-              ].map((order) => (
+              {activities.length > 0 ? activities.map((order) => (
                 <tr key={order.id}>
-                  <td>{order.id}</td>
-                  <td>{order.name}</td>
-                  <td>{order.items}</td>
+                  <td>{order.orderNumber || order.id}</td>
+                  <td>{order.customerName || 'Customer'}</td>
                   <td>
-                    <span className={`status-badge status-${order.status.toLowerCase()}`}>
-                      {order.status}
+                    <span className={`status-badge status-${(order.status || 'ACTIVE').toLowerCase()}`}>
+                      {order.status || 'ACTIVE'}
                     </span>
                   </td>
-                  <td>{order.amount}</td>
+                  <td>₹{order.grandTotal || order.amount || 0}</td>
                 </tr>
-              ))}
+              )) : (
+                <tr><td colSpan={4} className="text-center">No recent activity</td></tr>
+              )}
             </tbody>
           </table>
         </div>

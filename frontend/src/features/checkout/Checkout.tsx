@@ -1,22 +1,68 @@
+import { useState, useEffect } from 'react';
 import './Checkout.css';
 import { CreditCard, MapPin, Truck, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { rentalsApi } from '../../api/rentals';
 
 const Checkout = () => {
+  const navigate = useNavigate();
   const [success, setSuccess] = useState(false);
+  const [cart, setCart] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [checkingOut, setCheckingOut] = useState(false);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const res = await rentalsApi.getCart();
+        setCart(res.data);
+      } catch (err) {
+        console.error('Failed to fetch cart', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCart();
+  }, []);
+
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      await rentalsApi.checkout({
+        addressId: 'temp-address-id', // Would be selected from UI
+        deliveryMethod: 'DELIVERY'
+      });
+      setSuccess(true);
+    } catch (err) {
+      console.error('Checkout failed', err);
+      alert('Checkout failed. Please try again.');
+    } finally {
+      setCheckingOut(false);
+    }
+  };
 
   if (success) {
     return (
-      <div className="checkout-success animate-fade-in glass-panel">
-        <CheckCircle size={64} className="success-icon" />
-        <h2>Order Confirmed!</h2>
-        <p>Your rental order has been placed successfully.</p>
-        <button className="btn-primary mt-4" onClick={() => window.location.href = '/'}>
-          Return to Catalog
+      <div className="checkout-success animate-fade-in glass-panel text-center p-12 max-w-md mx-auto mt-12">
+        <CheckCircle size={64} className="success-icon mx-auto text-green-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-2 text-gradient">Order Confirmed!</h2>
+        <p className="text-gray-400 mb-6">Your rental order has been placed successfully.</p>
+        <button className="btn-primary w-full justify-center" onClick={() => navigate('/orders')}>
+          View My Rentals
         </button>
       </div>
     );
   }
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading checkout...</div>;
+  }
+
+  const items = cart?.items || [];
+  const subtotal = cart?.subtotal || 0;
+  const deposit = cart?.depositTotal || 0;
+  const taxes = subtotal * 0.18;
+  const total = subtotal + deposit + taxes;
 
   return (
     <div className="checkout-container animate-fade-in">
@@ -83,30 +129,36 @@ const Checkout = () => {
         <div className="checkout-summary-section">
           <div className="cart-summary glass-panel">
             <h2>Order Summary</h2>
-            <div className="summary-row">
-              <span>Pro Camera Kit 1</span>
-              <span>₹4,500</span>
-            </div>
+            {items.map((item: any) => (
+              <div key={item.id} className="summary-row text-sm">
+                <span>{item.productName || 'Item'} (x{item.quantity})</span>
+                <span>₹{(item.unitPrice * item.quantity).toFixed(2)}</span>
+              </div>
+            ))}
             <div className="summary-divider"></div>
             <div className="summary-row">
               <span>Rental Total</span>
-              <span>₹4,500</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="summary-row">
               <span>Security Deposit (Refundable)</span>
-              <span>₹2,000</span>
+              <span>₹{deposit.toFixed(2)}</span>
             </div>
             <div className="summary-row">
               <span>Taxes</span>
-              <span>₹810</span>
+              <span>₹{taxes.toFixed(2)}</span>
             </div>
             <div className="summary-divider"></div>
             <div className="summary-row summary-total">
               <span>Total to Pay</span>
-              <span>₹7,310</span>
+              <span>₹{total.toFixed(2)}</span>
             </div>
-            <button className="btn-primary w-full justify-center mt-4" onClick={() => setSuccess(true)}>
-              Pay Securely
+            <button 
+              className="btn-primary w-full justify-center mt-4" 
+              onClick={handleCheckout}
+              disabled={checkingOut || items.length === 0}
+            >
+              {checkingOut ? 'Processing...' : 'Pay Securely'}
             </button>
             <p className="secure-payment-note">Your payment is encrypted and secure.</p>
           </div>

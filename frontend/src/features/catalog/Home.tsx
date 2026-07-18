@@ -1,7 +1,27 @@
+import { useState, useEffect } from 'react';
 import './Home.css';
 import { Calendar, Filter, ArrowRight } from 'lucide-react';
+import { productsApi } from '../../api/products';
+import { Product } from '../../types/api';
 
 const Home = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await productsApi.getProducts();
+        setProducts(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch products', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   return (
     <div className="home-container animate-fade-in">
       <header className="hero">
@@ -27,21 +47,29 @@ const Home = () => {
 
       <section className="featured-section">
         <h2 className="section-title">Featured Equipment</h2>
-        <div className="product-grid">
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="product-card glass-panel">
-              <div className="product-image-placeholder"></div>
-              <div className="product-info">
-                <h3>Pro Camera Kit {item}</h3>
-                <p className="product-category">Photography</p>
-                <div className="product-price">
-                  <span className="price-amount">$45</span>
-                  <span className="price-period">/day</span>
+        {loading ? (
+          <p>Loading catalog...</p>
+        ) : (
+          <div className="product-grid">
+            {products.length > 0 ? products.map((item) => (
+              <div key={item.id} className="product-card glass-panel">
+                <div className="product-image-placeholder text-xs flex items-center justify-center text-gray-400">
+                  Image
+                </div>
+                <div className="product-info">
+                  <h3>{item.name}</h3>
+                  <p className="product-category text-xs mb-1">{item.description}</p>
+                  <div className="product-price">
+                    <span className="price-amount">₹{item.basePrice}</span>
+                    <span className="price-period">/day</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            )) : (
+              <p>No products available.</p>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );
