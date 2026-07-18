@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rental-worker
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rental-worker
+  template:
+    metadata:
+      labels:
+        app: rental-worker
+    spec:
+      containers:
+        - name: worker
+          image: rental-backend:latest # Worker uses same base build but executes container command
+          command: ["npm", "run", "start"] # Or command overriding to trigger worker entrypoint
+          envFrom:
+            - configMapRef:
+                name: rental-config
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rental-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rental-secrets
+                  key: DB_PASSWORD
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rental-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rental-secrets
+                  key: JWT_SECRET
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 500m
+            requests:
+              memory: 256Mi
+              cpu: 200m

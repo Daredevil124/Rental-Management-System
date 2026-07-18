@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rental-redis
+  namespace: default
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app: rental-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rental-redis
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rental-redis
+  template:
+    metadata:
+      labels:
+        app: rental-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+              name: redis
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 100m
+            requests:
+              memory: 128Mi
+              cpu: 50m

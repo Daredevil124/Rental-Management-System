@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rental-frontend
+  namespace: default
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: rental-frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rental-frontend
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rental-frontend
+  template:
+    metadata:
+      labels:
+        app: rental-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: rental-frontend:latest
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 200m
+            requests:
+              memory: 128Mi
+              cpu: 100m
