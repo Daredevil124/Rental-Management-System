@@ -9,6 +9,5 @@ router.use(authenticate);
 router.post('/checkout', checkout);
 router.get('/', getRentals);
 router.get('/:rentalId', getRentalById);
-router.get('/:rentalId/invoice', getInvoice);
 
 export default router;

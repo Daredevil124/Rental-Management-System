@@ -55,10 +55,18 @@ const Profile = () => {
             <h3>Saved Addresses</h3>
           </div>
           <div className="saved-address mt-4">
-            <p><strong>Home</strong></p>
-            <p className="subtitle">123 Main St, Apartment 4B<br/>Mumbai, Maharashtra 400001</p>
+            {user?.addresses && user.addresses.length > 0 ? (
+              user.addresses.map((addr: any, index: number) => (
+                <div key={index} className="mb-4">
+                  <p><strong>{addr.label || 'Home'}</strong></p>
+                  <p className="subtitle">{addr.line1}, {addr.city}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400">No addresses saved.</p>
+            )}
           </div>
-          <button className="btn-secondary mt-4">Add New Address</button>
+          <button className="btn-secondary mt-4" onClick={() => alert('Address modal would open here')}>Add New Address</button>
         </div>
 
         <div className="profile-card glass-panel">

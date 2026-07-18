@@ -25,12 +25,20 @@ const Checkout = () => {
     fetchCart();
   }, []);
 
+    const [deliveryMethod, setDeliveryMethod] = useState('DELIVERY');
+    const [fullName, setFullName] = useState('');
+    const [address, setAddress] = useState('');
+    const [cardNumber, setCardNumber] = useState('');
+    const [expiry, setExpiry] = useState('');
+    const [cvv, setCvv] = useState('');
+
   const handleCheckout = async () => {
     setCheckingOut(true);
     try {
+      // In a real app, we would save the address to DB first and pass the ID
       await rentalsApi.checkout({
-        addressId: 'temp-address-id', // Would be selected from UI
-        deliveryMethod: 'DELIVERY'
+        addressId: 'temp-address-id', 
+        deliveryMethod
       });
       setSuccess(true);
     } catch (err) {
@@ -64,6 +72,8 @@ const Checkout = () => {
   const taxes = subtotal * 0.18;
   const total = subtotal + deposit + taxes;
 
+  const isFormValid = items.length > 0 && fullName && address && cardNumber && expiry && cvv;
+
   return (
     <div className="checkout-container animate-fade-in">
       <h1 className="text-gradient">Checkout</h1>
@@ -77,12 +87,12 @@ const Checkout = () => {
               <h2>Delivery Method</h2>
             </div>
             <div className="delivery-options">
-              <label className="delivery-option active">
-                <input type="radio" name="delivery" defaultChecked />
+              <label className={`delivery-option ${deliveryMethod === 'DELIVERY' ? 'active' : ''}`}>
+                <input type="radio" name="delivery" checked={deliveryMethod === 'DELIVERY'} onChange={() => setDeliveryMethod('DELIVERY')} />
                 <span>Home Delivery</span>
               </label>
-              <label className="delivery-option">
-                <input type="radio" name="delivery" />
+              <label className={`delivery-option ${deliveryMethod === 'STORE_PICKUP' ? 'active' : ''}`}>
+                <input type="radio" name="delivery" checked={deliveryMethod === 'STORE_PICKUP'} onChange={() => setDeliveryMethod('STORE_PICKUP')} />
                 <span>Store Pickup</span>
               </label>
             </div>
@@ -95,11 +105,11 @@ const Checkout = () => {
             </div>
             <div className="form-group">
               <label>Full Name</label>
-              <input type="text" placeholder="John Doe" />
+              <input type="text" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} />
             </div>
             <div className="form-group mt-4">
               <label>Address</label>
-              <textarea rows={3} placeholder="123 Main St, City, Country"></textarea>
+              <textarea rows={3} placeholder="123 Main St, City, Country" value={address} onChange={e => setAddress(e.target.value)}></textarea>
             </div>
           </div>
 
@@ -110,16 +120,16 @@ const Checkout = () => {
             </div>
             <div className="form-group">
               <label>Card Number</label>
-              <input type="text" placeholder="XXXX XXXX XXXX XXXX" />
+              <input type="text" placeholder="XXXX XXXX XXXX XXXX" value={cardNumber} onChange={e => setCardNumber(e.target.value)} />
             </div>
             <div className="payment-row mt-4">
               <div className="form-group flex-1">
                 <label>Expiry</label>
-                <input type="text" placeholder="MM/YY" />
+                <input type="text" placeholder="MM/YY" value={expiry} onChange={e => setExpiry(e.target.value)} />
               </div>
               <div className="form-group flex-1">
                 <label>CVV</label>
-                <input type="text" placeholder="123" />
+                <input type="password" placeholder="123" value={cvv} onChange={e => setCvv(e.target.value)} />
               </div>
             </div>
           </div>
@@ -156,7 +166,7 @@ const Checkout = () => {
             <button 
               className="btn-primary w-full justify-center mt-4" 
               onClick={handleCheckout}
-              disabled={checkingOut || items.length === 0}
+              disabled={checkingOut || !isFormValid}
             >
               {checkingOut ? 'Processing...' : 'Pay Securely'}
             </button>

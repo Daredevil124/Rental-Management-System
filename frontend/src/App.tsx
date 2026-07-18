@@ -15,10 +15,24 @@ import AdminProducts from './features/admin-products/AdminProducts';
 import AdminQuotations from './features/admin-quotations/AdminQuotations';
 import AdminPricing from './features/admin-pricing/AdminPricing';
 
+import { useState, useEffect } from 'react';
+import SplashScreen from './features/splash/SplashScreen';
+
 function App() {
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash screen once per session
+    return !sessionStorage.getItem('splashShown');
+  });
+
+  const handleSplashFinish = () => {
+    sessionStorage.setItem('splashShown', 'true');
+    setShowSplash(false);
+  };
+
   return (
     <Router>
-      <div className="app-container">
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
+      <div className={`app-container ${showSplash ? 'hidden' : ''}`}>
         <Navbar />
         <main className="main-content container">
           <Routes>

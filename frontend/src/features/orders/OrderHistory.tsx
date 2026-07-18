@@ -3,6 +3,8 @@ import './OrderHistory.css';
 import { Download, Package } from 'lucide-react';
 import { rentalsApi } from '../../api/rentals';
 
+import { API_BASE_URL } from '../../api/client';
+
 const OrderHistory = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,29 @@ const OrderHistory = () => {
                 </div>
                 <div className="order-actions">
                   <span className="order-amount">₹{order.grandTotal || order.totalAmount || 0}</span>
-                  <button className="btn-secondary">
+                  <button 
+                    className="btn-secondary"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`${API_BASE_URL}/rentals/${order.id}/invoice`, {
+                          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        });
+                        if (!response.ok) throw new Error('Failed to download');
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Invoice-${order.orderNumber || order.id}.html`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                      } catch (error) {
+                        console.error('Invoice download failed:', error);
+                        alert('Invoice is not available for this order yet.');
+                      }
+                    }}
+                  >
                     <Download size={16} /> Invoice
                   </button>
                 </div>
