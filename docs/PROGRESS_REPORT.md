@@ -68,7 +68,7 @@ When changing shared contract files, keep edits minimal and append-compatible.
 - Problem statement read: `[x]`
 - Project plan created: `[x]`
 - Architecture diagram created: `[x]`
-- Implementation started: `[ ]`
+- Implementation started: `[x]`
 - MVP complete: `[ ]`
 - Demo-winning features complete: `[ ]`
 - Deployment-ready: `[ ]`
@@ -90,22 +90,22 @@ When changing shared contract files, keep edits minimal and append-compatible.
 
 ### A01 Backend Scaffold
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Create Express app structure, TypeScript config, lint/test setup, health endpoint.
 - Own files: `backend/**`
 - Depends on: None
 - Must expose:
   - `GET /api/v1/health`
-- Done note:
+- Done note: Implemented Express + TypeScript scaffold with standard API response envelope, request ID middleware, CORS/Helmet/Morgan setup, centralized 404/error handlers, `GET /api/v1/health`, Vitest/Supertest health test, lint/typecheck scripts, and backend env example. Files changed: `backend/package.json`, `backend/package-lock.json`, `backend/tsconfig.json`, `backend/tsconfig.test.json`, `backend/vitest.config.ts`, `backend/.eslintrc.cjs`, `backend/.env.example`, `backend/src/**`, `backend/tests/health.test.ts`. Verification: `npm run typecheck` passed, `npm run lint` passed, `npm test` passed, `npm run build` passed, `npm audit --omit=dev` found 0 production vulnerabilities, manual `curl -i http://localhost:4000/api/v1/health` returned HTTP 200 with standard envelope.
 
 ### A02 Database Schema
 
-- Status: `[ ]`
+- Status: `[x]`
 - Scope: Create PostgreSQL schema/migrations for users, products, variants, inventory, price lists, rental periods, pricing rules, deposits, rentals, invoices, pickup/return, inspections.
 - Own files: `backend/prisma/**` or `backend/migrations/**`, `backend/src/db/**`
 - Depends on: A01
 - Must follow: snake_case DB columns and enum values from project plan.
-- Done note:
+- Done note: Created schema in `backend/prisma/schema.prisma` matching all requirements and snake_case mapping. Created initial migration `20260718062000_init_schema`. Configured Prisma client with pg adapter in `backend/src/db/prisma.ts`. Verification: ran `npm run typecheck` which passed successfully.
 
 ### A03 Auth And RBAC API
 
@@ -425,7 +425,7 @@ When adding an endpoint, update this table.
 
 | Endpoint | Owner | Status | Frontend Consumer | Notes |
 | --- | --- | --- | --- | --- |
-| `GET /api/v1/health` | A | Not started | C | Health checks |
+| `GET /api/v1/health` | A | Done | C | Implemented in A01; returns standard success envelope and `x-request-id` header |
 | `POST /api/v1/auth/register` | A | Not started | B02 | Customer/admin registration depending seed policy |
 | `POST /api/v1/auth/login` | A | Not started | B02 | Returns token and user |
 | `GET /api/v1/users/me` | A | Not started | B02/B05 | Current user |
