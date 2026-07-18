@@ -11,7 +11,13 @@ export class ProductsService {
   async getProducts() {
     return prisma.product.findMany({
       where: { isActive: true },
-      include: { variants: true },
+      include: { 
+        variants: true,
+        pricingRules: {
+          include: { rentalPeriod: true }
+        },
+        depositRules: true
+      },
     });
   }
 

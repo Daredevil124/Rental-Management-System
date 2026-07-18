@@ -2,44 +2,45 @@ import { useState, useEffect } from 'react';
 import './Cart.css';
 import { Trash2, ArrowRight, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { rentalsApi } from '../../api/rentals';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const [cart, setCart] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const res: any = await rentalsApi.getCart();
-        setCart(res.data);
-      } catch (err) {
-        console.error('Failed to fetch cart', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCart();
-  }, []);
-
-  const handleRemove = async (itemId: string) => {
-    try {
-      await rentalsApi.removeCartItem(itemId);
-      const res: any = await rentalsApi.getCart();
-      setCart(res.data);
-    } catch (err) {
-      console.error('Failed to remove item', err);
+  const fetchCart = () => {
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      setItems(JSON.parse(storedCart));
+    } else {
+      setItems([]);
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center">Loading cart...</div>;
-  }
+  useEffect(() => {
+    fetchCart();
+    
+    const handleStorageUpdate = () => {
+      fetchCart();
+    };
+    
+    window.addEventListener('local-storage-update', handleStorageUpdate);
+    window.addEventListener('storage', handleStorageUpdate);
+    
+    return () => {
+      window.removeEventListener('local-storage-update', handleStorageUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
+    };
+  }, []);
 
-  const items = cart?.items || [];
-  const subtotal = cart?.subtotal || 0;
-  const deposit = cart?.depositTotal || 0;
+  const handleRemove = (itemId: string) => {
+    const updatedItems = items.filter(item => item.id !== itemId);
+    setItems(updatedItems);
+    localStorage.setItem('cart', JSON.stringify(updatedItems));
+    window.dispatchEvent(new Event('local-storage-update'));
+  };
+
+  const subtotal = items.reduce((acc, item) => acc + item.price, 0);
+  const deposit = items.reduce((acc, item) => acc + item.deposit, 0);
   const taxes = subtotal * 0.18; // Mock 18% tax
   const total = subtotal + deposit + taxes;
 
@@ -53,17 +54,17 @@ const Cart = () => {
             <div key={item.id} className="cart-item">
               <div className="cart-item-image text-xs flex items-center justify-center text-gray-400">IMG</div>
               <div className="cart-item-info">
-                <h3>{item.productName || 'Product Name'}</h3>
-                <p className="cart-item-category">Quantity: {item.quantity}</p>
-                <div className="rental-dates">
+                <h3>{item.name || 'Product Name'}</h3>
+                <div className="rental-dates mt-1">
                   <Calendar size={16} />
-                  <span>
-                    {new Date(item.startsAt).toLocaleDateString()} - {new Date(item.endsAt).toLocaleDateString()}
+                  <span className="text-sm">
+                    {new Date(item.startDate).toLocaleString()}
                   </span>
                 </div>
+                <p className="cart-item-category mt-1">Duration: {item.duration}</p>
               </div>
               <div className="cart-item-price">
-                <span className="price-val">₹{item.unitPrice * item.quantity}</span>
+                <span className="price-val">₹{item.price}</span>
                 <button className="btn-remove" onClick={() => handleRemove(item.id)}>
                   <Trash2 size={18} />
                 </button>

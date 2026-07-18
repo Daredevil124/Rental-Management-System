@@ -10,8 +10,9 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [period, setPeriod] = useState('Daily');
+  const [durationHours, setDurationHours] = useState(0);
+  const [durationDays, setDurationDays] = useState(1);
+  const [durationWeeks, setDurationWeeks] = useState(0);
 
 
   useEffect(() => {
@@ -28,29 +29,45 @@ const Home = () => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    if (selectedProduct) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedProduct]);
+
   const filteredProducts = products.filter(product => {
-    console.log(product);
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  }
-  );
-   console.log("hi");
+    return product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+  });
 
   const handleAddToCart = () => {
     if (!selectedProduct) return;
-    if (!startDate || !endDate) {
-      alert('Please select start and end dates');
+    if (!startDate) {
+      alert('Please select a start date');
       return;
     }
+    if (durationHours === 0 && durationDays === 0 && durationWeeks === 0) {
+      alert('Please select a valid duration');
+      return;
+    }
+    
+    const prices = getPrices(selectedProduct);
+    const deposit = getDeposit(selectedProduct);
+    const totalPrice = (prices.hourly * durationHours) + (prices.daily * durationDays) + (prices.weekly * durationWeeks);
+    
     const cartItem = {
       id: Math.random().toString(36).substring(7),
       productId: selectedProduct.id,
       name: selectedProduct.name,
-      price: selectedProduct.basePrice,
-      deposit: Math.round(selectedProduct.basePrice * 1.5),
+      price: totalPrice,
+      deposit: deposit,
       startDate,
-      endDate,
-      period
+      duration: `${durationWeeks}w ${durationDays}d ${durationHours}h`,
     };
 
     const currentCart = localStorage.getItem('cart');
@@ -62,7 +79,37 @@ const Home = () => {
 
     setSelectedProduct(null);
     setStartDate('');
-    setEndDate('');
+    setDurationHours(0);
+    setDurationDays(1);
+    setDurationWeeks(0);
+  };
+
+  const getBase = (product: any) => {
+    if (product?.pricingRules && product.pricingRules.length > 0) {
+      return parseFloat(product.pricingRules[0].price);
+    }
+    return product?.basePrice || 500;
+  };
+
+  const getPrices = (product: any) => {
+    const hourlyRule = product?.pricingRules?.find((r: any) => r.rentalPeriod?.unit === 'HOUR');
+    const dailyRule = product?.pricingRules?.find((r: any) => r.rentalPeriod?.unit === 'DAY');
+    const weeklyRule = product?.pricingRules?.find((r: any) => r.rentalPeriod?.unit === 'WEEK');
+    
+    const base = getBase(product);
+    
+    return {
+      hourly: hourlyRule ? parseFloat(hourlyRule.price) : Math.round(base / 8),
+      daily: dailyRule ? parseFloat(dailyRule.price) : base,
+      weekly: weeklyRule ? parseFloat(weeklyRule.price) : base * 5
+    };
+  };
+
+  const getDeposit = (product: any) => {
+    const depRule = product?.depositRules?.[0];
+    if (depRule) return parseFloat(depRule.amount);
+    const base = getBase(product);
+    return Math.round(base * 1.5);
   };
 
   return (
@@ -91,7 +138,7 @@ const Home = () => {
         {loading ? (
           <p>Loading catalog...</p>
         ) : (
-          <div className="product-grid">
+            <div className="product-grid">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
@@ -105,7 +152,7 @@ const Home = () => {
                   <h3>{product.name}</h3>
                   <p className="product-category text-xs mb-1">{product.description}</p>
                   <div className="product-price">
-                    <span className="price-amount">₹{product.basePrice}</span>
+                    <span className="price-amount">₹{getPrices(product).daily}</span>
                     <span className="price-period">/day</span>
                   </div>
                 </div>
@@ -121,122 +168,96 @@ const Home = () => {
       {selectedProduct && (
         <div className="product-modal-backdrop" onClick={() => {
           setSelectedProduct(null);
-          setEndDate('');
           setStartDate('');
-          setPeriod('Daily');
-        }
-        }>
+          setDurationHours(0);
+          setDurationDays(1);
+          setDurationWeeks(0);
+        }}>
           <div className="product-modal glass-panel" onClick={(e) => e.stopPropagation()}>
             <button className="close-btn" onClick={() => {
               setSelectedProduct(null);
-              setEndDate('');
               setStartDate('');
-              setPeriod('Daily');
-            }
-            }>
+              setDurationHours(0);
+              setDurationDays(1);
+              setDurationWeeks(0);
+            }}>
               <X size={20} />
             </button>
-            <span className="product-category">{selectedProduct.categoryId}</span>
+            <span className="product-category">{selectedProduct.category}</span>
             <h2 className="text-gradient mt-2">{selectedProduct.name}</h2>
             <p className="product-description mt-4">{selectedProduct.description}</p>
 
             <div className="modal-price-box mt-4">
-              <div>
-                <span className="modal-price-amount">₹{selectedProduct.basePrice}</span>
-                <span className="modal-price-period">/day</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
+                  <span className="text-gray-400">Hourly Rate:</span>
+                  <span className="font-semibold text-white">₹{getPrices(selectedProduct).hourly}/hr</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
+                  <span className="text-gray-400">Daily Rate:</span>
+                  <span className="font-semibold text-white">₹{getPrices(selectedProduct).daily}/day</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
+                  <span className="text-gray-400">Weekly Rate:</span>
+                  <span className="font-semibold text-white">₹{getPrices(selectedProduct).weekly}/week</span>
+                </div>
               </div>
-              <div className="modal-deposit-amount">
-                Security Deposit Hold: <strong>₹{Math.round(selectedProduct.basePrice * 1.5)}</strong>
+              <div className="modal-deposit-amount mt-3 text-center border-t border-gray-700 pt-3">
+                Security Deposit Hold: <strong>₹{getDeposit(selectedProduct)}</strong>
               </div>
             </div>
 
             <div className="rental-options mt-6">
-              <div className="form-group">
-                <label>Rental Period</label>
-                <select
-                  value={period}
-                  onChange={(e) => {
-                    setPeriod(e.target.value);
-                    setStartDate('');
-                    setEndDate('');
-                  }}
-                  className="w-full"
-                >
-                  <option value="Hourly">Hourly</option>
-                  <option value="Daily">Daily</option>
-                  <option value="Weekly">Weekly</option>
-                </select>
+              <div className="form-group mb-4">
+                <label>Start Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500"
+                  required
+                />
               </div>
 
-              <div className="date-picker-group mt-4">
-                {period === 'Hourly' && (
-                  <>
-                    <div className="form-group">
-                      <label>Start Time</label>
-                      <input
-                        type="datetime-local"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>End Time</label>
-                      <input
-                        type="datetime-local"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-
-                {period === 'Daily' && (
-                  <>
-                    <div className="form-group">
-                      <label>Start Date</label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>End Date</label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-
-                {period === 'Weekly' && (
-                  <>
-                    <div className="form-group">
-                      <label>Start Week</label>
-                      <input
-                        type="week"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>End Week</label>
-                      <input
-                        type="week"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
+              <label className="block text-sm mb-2 text-gray-300 font-medium">Duration</label>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="form-group">
+                  <label className="text-xs text-gray-400">Hours</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={durationHours}
+                    onChange={(e) => setDurationHours(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="text-xs text-gray-400">Days</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={durationDays}
+                    onChange={(e) => setDurationDays(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="text-xs text-gray-400">Weeks</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={durationWeeks}
+                    onChange={(e) => setDurationWeeks(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white"
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-indigo-900/20 border border-indigo-500/30 rounded flex justify-between items-center">
+                 <span className="text-sm text-indigo-300">Total Rental Price:</span>
+                 <span className="font-bold text-white text-lg">
+                   ₹{(getPrices(selectedProduct).hourly * durationHours) + (getPrices(selectedProduct).daily * durationDays) + (getPrices(selectedProduct).weekly * durationWeeks)}
+                 </span>
               </div>
             </div>
 

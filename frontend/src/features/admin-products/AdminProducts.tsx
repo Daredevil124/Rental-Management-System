@@ -40,7 +40,7 @@ const AdminProducts = () => {
 
   const [newProduct, setNewProduct] = useState({ 
     sku: '', name: '', cat: 'Photography', price: '', stock: 0, 
-    depositRule: '', lateFeeRule: '', rentalPeriods: '',
+    depositAmount: 0, lateFeeRule: '', rentalPeriods: '',
     lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000,
     variants: [{ sku: '', brand: '', manufacturer: '', color: '', size: '' }]
   });
@@ -90,20 +90,38 @@ const AdminProducts = () => {
           }
         }
 
-        // 3. Create Late Fee Rules, Deposit Rules, etc... (skipped for brevity, but could be added here)
+        // 3. Create Deposit Rule
+        if (newProduct.depositAmount > 0) {
+          await adminApi.createDepositRule({
+            productId: productId,
+            type: 'FIXED',
+            amount: newProduct.depositAmount
+          });
+        }
+
+        // 4. Create Late Fee Rule
+        if (newProduct.lateFeeAmount > 0) {
+          await adminApi.createLateFeeRule({
+            productId: productId,
+            unit: newProduct.lateFeeUnit.toUpperCase(),
+            amount: newProduct.lateFeeAmount,
+            gracePeriodMinutes: newProduct.gracePeriod,
+            maxFee: newProduct.maxFee
+          });
+        }
         
         await fetchProducts();
         setShowAddModal(false);
         setNewProduct({ 
           sku: '', name: '', cat: 'Photography', price: '', stock: 0,
-          depositRule: '',
+          depositAmount: 0,
           lateFeeRule: '',
           rentalPeriods: 'Daily, Weekly',
           lateFeeUnit: 'Daily', lateFeeAmount: 500, gracePeriod: 120, maxFee: 5000,
           variants: [{ sku: '', brand: '', manufacturer: '', color: '', size: '' }]
         });
       } catch (err) {
-        console.error('Failed to create product and variants', err);
+        console.error('Failed to create product and rules', err);
         alert('Failed to save product completely');
       }
     }
@@ -248,8 +266,8 @@ const AdminProducts = () => {
                 <h3 className="text-lg font-medium text-indigo-400 mb-3 border-b border-gray-700 pb-2">Pricing & Penalty Rules</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Security Deposit Rule</label>
-                    <input type="text" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.depositRule} onChange={e => setNewProduct({...newProduct, depositRule: e.target.value})} placeholder="e.g. 20% or ₹5000" />
+                    <label className="block text-gray-400 text-sm mb-1">Security Deposit Amount (₹)</label>
+                    <input type="number" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-indigo-500" value={newProduct.depositAmount || ''} onChange={e => setNewProduct({...newProduct, depositAmount: Number(e.target.value)})} placeholder="e.g. 5000" />
                   </div>
                   
                   <div className="bg-gray-800/50 p-3 rounded border border-gray-700 space-y-3">
