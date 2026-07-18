@@ -33,7 +33,28 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     };
+
     fetchDashboard();
+
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+    const eventSource = new EventSource(`${apiBase}/admin/dashboard/events`);
+
+    eventSource.onmessage = (event) => {
+      try {
+        console.log('Realtime operational feed event:', event.data);
+        fetchDashboard();
+      } catch (err) {
+        console.error('Failed to process realtime event', err);
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error('SSE EventSource disconnected or errored', err);
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   if (loading) {
