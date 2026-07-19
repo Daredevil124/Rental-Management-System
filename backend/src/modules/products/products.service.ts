@@ -12,7 +12,11 @@ export class ProductsService {
     return prisma.product.findMany({
       where: { isActive: true },
       include: { 
-        variants: true,
+        variants: {
+          include: {
+            inventoryUnits: true
+          }
+        },
         pricingRules: {
           include: { rentalPeriod: true }
         },
@@ -39,9 +43,102 @@ export class ProductsService {
   }
 
   async updateProduct(productId: string, data: z.infer<typeof updateProductSchema>) {
-    return prisma.product.update({
-      where: { id: productId },
-      data,
+    const { name, description, category, isActive, price, depositAmount, lateFeeAmount, lateFeeUnit, gracePeriod, maxFee } = data;
+
+    return prisma.$transaction(async (tx) => {
+      // 1. Update product base info
+      const product = await tx.product.update({
+        where: { id: productId },
+        data: {
+          name,
+          description,
+          category,
+          isActive
+        }
+      });
+
+      // 2. Update PricingRule (Daily) if price is passed
+      if (price !== undefined) {
+        const defaultPl = await tx.priceList.findFirst({ where: { isDefault: true } });
+        const dailyPeriod = await tx.rentalPeriod.findFirst({ where: { name: 'Daily' } });
+        if (defaultPl && dailyPeriod) {
+          const existingPricing = await tx.pricingRule.findFirst({
+            where: {
+              priceListId: defaultPl.id,
+              rentalPeriodId: dailyPeriod.id,
+              productId: productId,
+              variantId: null
+            }
+          });
+          if (existingPricing) {
+            await tx.pricingRule.update({
+              where: { id: existingPricing.id },
+              data: { price }
+            });
+          } else {
+            await tx.pricingRule.create({
+              data: {
+                priceListId: defaultPl.id,
+                rentalPeriodId: dailyPeriod.id,
+                productId: productId,
+                price
+              }
+            });
+          }
+        }
+      }
+
+      // 3. Update DepositRule
+      if (depositAmount !== undefined) {
+        const existingRule = await tx.depositRule.findFirst({
+          where: { productId }
+        });
+        if (existingRule) {
+          await tx.depositRule.update({
+            where: { id: existingRule.id },
+            data: { amount: depositAmount }
+          });
+        } else {
+          await tx.depositRule.create({
+            data: {
+              productId,
+              type: 'FIXED',
+              amount: depositAmount
+            }
+          });
+        }
+      }
+
+      // 4. Update LateFeeRule
+      if (lateFeeAmount !== undefined) {
+        const existingRule = await tx.lateFeeRule.findFirst({
+          where: { productId }
+        });
+        if (existingRule) {
+          await tx.lateFeeRule.update({
+            where: { id: existingRule.id },
+            data: {
+              amount: lateFeeAmount,
+              unit: lateFeeUnit || 'DAILY',
+              gracePeriodMinutes: gracePeriod !== undefined ? gracePeriod : 120,
+              maxFee: maxFee !== undefined ? maxFee : 5000
+            }
+          });
+        } else {
+          await tx.lateFeeRule.create({
+            data: {
+              productId,
+              unit: lateFeeUnit || 'DAILY',
+              amount: lateFeeAmount,
+              gracePeriodMinutes: gracePeriod !== undefined ? gracePeriod : 120,
+              maxFee: maxFee !== undefined ? maxFee : 5000,
+              isActive: true
+            }
+          });
+        }
+      }
+
+      return product;
     });
   }
 

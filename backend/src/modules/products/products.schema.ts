@@ -13,6 +13,12 @@ export const updateProductSchema = z.object({
   description: z.string().optional().nullable(),
   category: z.string().min(2).optional(),
   isActive: z.boolean().optional(),
+  price: z.number().min(0).optional(),
+  depositAmount: z.number().min(0).optional(),
+  lateFeeAmount: z.number().min(0).optional(),
+  lateFeeUnit: z.enum(['HOURLY', 'DAILY']).optional(),
+  gracePeriod: z.number().min(0).optional(),
+  maxFee: z.number().min(0).optional().nullable(),
 });
 
 export const createVariantSchema = z.object({

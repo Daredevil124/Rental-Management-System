@@ -200,7 +200,13 @@ const AdminProducts = () => {
       id: prod.id,
       name: prod.name,
       category: prod.cat,
-      description: prod.rawProduct?.description || ''
+      description: prod.rawProduct?.description || '',
+      price: prod.rawProduct?.pricingRules?.[0]?.price ? Number(prod.rawProduct.pricingRules[0].price) : 500,
+      depositAmount: prod.rawProduct?.depositRules?.[0]?.amount ? Number(prod.rawProduct.depositRules[0].amount) : 0,
+      lateFeeAmount: prod.rawProduct?.lateFeeRules?.[0]?.amount ? Number(prod.rawProduct.lateFeeRules[0].amount) : 500,
+      lateFeeUnit: prod.rawProduct?.lateFeeRules?.[0]?.unit === 'HOURLY' ? 'Hourly' : 'Daily',
+      gracePeriod: prod.rawProduct?.lateFeeRules?.[0]?.gracePeriodMinutes || 120,
+      maxFee: prod.rawProduct?.lateFeeRules?.[0]?.maxFee || 5000
     });
     setShowEditModal(true);
   };
@@ -211,7 +217,13 @@ const AdminProducts = () => {
         await adminApi.updateProduct(editingProduct.id, {
           name: editingProduct.name,
           category: editingProduct.category,
-          description: editingProduct.description
+          description: editingProduct.description,
+          price: Number(editingProduct.price) || 0,
+          depositAmount: Number(editingProduct.depositAmount) || 0,
+          lateFeeAmount: Number(editingProduct.lateFeeAmount) || 0,
+          lateFeeUnit: editingProduct.lateFeeUnit.toUpperCase() === 'HOURLY' ? 'HOURLY' : 'DAILY',
+          gracePeriod: Number(editingProduct.gracePeriod) || 0,
+          maxFee: Number(editingProduct.maxFee) || null
         });
         await fetchProducts();
         setShowEditModal(false);
@@ -436,46 +448,113 @@ const AdminProducts = () => {
       {/* EDIT PRODUCT DETAILS MODAL */}
       {showEditModal && editingProduct && (
         <div className="modal-backdrop">
-          <div className="modal-content glass-panel max-w-lg">
+          <div className="modal-content glass-panel max-w-2xl animate-fade-in">
             <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
               <h2 className="text-xl font-semibold text-white">Edit Product Details</h2>
-              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white"><X size={20}/></button>
+              <button onClick={() => { setShowEditModal(false); setEditingProduct(null); }} className="text-gray-400 hover:text-white"><X size={20}/></button>
             </div>
             
-            <div className="space-y-4">
-              <div className="form-group">
-                <label>Product Name</label>
-                <input 
-                  type="text" 
-                  value={editingProduct.name} 
-                  onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} 
-                />
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+              <div>
+                <div className="form-group-title">Basic Info</div>
+                <div className="form-grid-2">
+                  <div className="form-group">
+                    <label>Product Name</label>
+                    <input 
+                      type="text" 
+                      value={editingProduct.name} 
+                      onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Category</label>
+                    <input 
+                      type="text" 
+                      value={editingProduct.category} 
+                      onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} 
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-grid-2">
+                  <div className="form-group">
+                    <label>Base Daily Price (₹)</label>
+                    <input 
+                      type="number" 
+                      value={editingProduct.price} 
+                      onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <input 
+                      type="text" 
+                      value={editingProduct.description} 
+                      onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} 
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Category</label>
-                <input 
-                  type="text" 
-                  value={editingProduct.category} 
-                  onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} 
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Description</label>
-                <textarea 
-                  rows={4}
-                  value={editingProduct.description} 
-                  onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} 
-                  style={{ resize: 'none' }}
-                />
+              <div>
+                <div className="form-group-title">Pricing & Penalty Rules</div>
+                <div className="space-y-4">
+                  <div className="form-group">
+                    <label>Security Deposit Amount (₹)</label>
+                    <input 
+                      type="number" 
+                      value={editingProduct.depositAmount} 
+                      onChange={e => setEditingProduct({...editingProduct, depositAmount: Number(e.target.value)})} 
+                    />
+                  </div>
+                  
+                  <div className="late-fee-config">
+                    <div className="late-fee-config-title">Late Return Configuration</div>
+                    <div className="form-grid-2">
+                      <div className="form-group">
+                        <label>Fee Type</label>
+                        <select 
+                          value={editingProduct.lateFeeUnit} 
+                          onChange={e => setEditingProduct({...editingProduct, lateFeeUnit: e.target.value})}
+                        >
+                          <option>Hourly</option>
+                          <option>Daily</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Amount (₹)</label>
+                        <input 
+                          type="number" 
+                          value={editingProduct.lateFeeAmount} 
+                          onChange={e => setEditingProduct({...editingProduct, lateFeeAmount: Number(e.target.value)})} 
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Grace Period (Minutes)</label>
+                        <input 
+                          type="number" 
+                          value={editingProduct.gracePeriod} 
+                          onChange={e => setEditingProduct({...editingProduct, gracePeriod: Number(e.target.value)})} 
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Maximum Cap (₹)</label>
+                        <input 
+                          type="number" 
+                          value={editingProduct.maxFee} 
+                          onChange={e => setEditingProduct({...editingProduct, maxFee: Number(e.target.value)})} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-gray-700 mt-6 flex gap-3">
               <button 
                 className="w-1/2 bg-gray-800 hover:bg-gray-700 text-white rounded py-2 transition-colors"
-                onClick={() => setShowEditModal(false)}
+                onClick={() => { setShowEditModal(false); setEditingProduct(null); }}
                 style={{ border: 'none', cursor: 'pointer' }}
               >
                 Cancel
