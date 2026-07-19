@@ -47,6 +47,40 @@ export class UsersService {
 
     return user;
   }
+
+  async getAllUsers() {
+    return prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        profileImage: true,
+        role: true,
+        isActive: true,
+        companyName: true,
+        productCategory: true,
+        gstNo: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async approveVendor(id: string) {
+    return prisma.user.update({
+      where: { id },
+      data: { isActive: true },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        isActive: true,
+      }
+    });
+  }
 }
 
 export const usersService = new UsersService();

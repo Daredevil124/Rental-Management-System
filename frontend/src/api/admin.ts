@@ -24,6 +24,7 @@ export const adminApi = {
   createPricingRule: (data: any) => apiClient.post('/admin/pricing-rules', data),
 
   // Quotations
+  getQuotations: () => apiClient.get('/admin/quotations'),
   getQuotationTemplates: () => apiClient.get('/admin/quotation-templates'),
   createQuotationTemplate: (data: any) => apiClient.post('/admin/quotation-templates', data),
   createQuotation: (data: any) => apiClient.post('/admin/quotations', data),
@@ -39,4 +40,8 @@ export const adminApi = {
   getDeposits: () => apiClient.get('/admin/deposits'),
   getDepositHistory: (rentalId: string) => apiClient.get(`/admin/rentals/${rentalId}/deposit-history`),
   settleDeposit: (rentalId: string, data: any) => apiClient.post(`/admin/rentals/${rentalId}/settle-deposit`, data),
+
+  // Users Management
+  getUsers: () => apiClient.get('/users/admin'),
+  approveVendor: (userId: string) => apiClient.patch(`/users/admin/${userId}/approve`),
 };

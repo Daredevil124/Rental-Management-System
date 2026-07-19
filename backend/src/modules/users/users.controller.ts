@@ -33,6 +33,24 @@ export class UsersController {
       next(error);
     }
   }
+
+  async getAllUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await usersService.getAllUsers();
+      res.status(200).json({ data: users });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async approveVendor(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await usersService.approveVendor(req.params.userId);
+      res.status(200).json({ data: user });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const usersController = new UsersController();

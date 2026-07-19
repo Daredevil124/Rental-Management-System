@@ -62,12 +62,14 @@ const VendorSignup = () => {
         gstNo
       });
 
-      if (response?.data?.token) {
-        localStorage.setItem('token', response.data.token);
+      if (response?.data?.user) {
         setSuccess(true);
+        const pendingMessage = (response.data as any).message || 'Vendor registration successful! Pending administrator approval.';
+        setError('');
+        alert(pendingMessage);
         setTimeout(() => {
-          navigate('/');
-        }, 1500);
+          navigate('/login');
+        }, 1000);
       } else {
         setError('Failed to register vendor account.');
       }

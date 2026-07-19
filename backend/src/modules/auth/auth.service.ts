@@ -24,8 +24,14 @@ export class AuthService {
         companyName: data.companyName,
         productCategory: data.productCategory,
         gstNo: data.gstNo,
+        isActive: data.role === 'VENDOR' ? false : true,
       },
     });
+
+    if (user.role === 'VENDOR' && !user.isActive) {
+      const { passwordHash, ...userWithoutPassword } = user;
+      return { token: null, user: userWithoutPassword, message: 'Your vendor account is pending approval by the administrator' };
+    }
 
     return this.generateAuthResponse(user);
   }
@@ -34,6 +40,10 @@ export class AuthService {
     const user = await prisma.user.findUnique({ where: { email: data.email } });
     if (!user) {
       throw new Error('Invalid email or password');
+    }
+
+    if (user.role === 'VENDOR' && !user.isActive) {
+      throw new Error('Your vendor account is pending approval by the administrator');
     }
 
     const isValidPassword = await bcrypt.compare(data.password, user.passwordHash);
