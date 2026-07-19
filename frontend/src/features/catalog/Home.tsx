@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './Home.css';
-import { Filter, ArrowRight, X } from 'lucide-react';
+import { Filter, ArrowRight, X, Heart, Package } from 'lucide-react';
 import { productsApi } from '../../api/products';
 import type { Product } from '../../types/api';
 
@@ -14,6 +14,33 @@ const Home = () => {
   const [durationHours, setDurationHours] = useState(0);
   const [durationDays, setDurationDays] = useState(1);
   const [durationWeeks, setDurationWeeks] = useState(0);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+
+  const loadWishlist = () => {
+    const stored = localStorage.getItem('wishlist');
+    setWishlist(stored ? JSON.parse(stored) : []);
+  };
+
+  useEffect(() => {
+    loadWishlist();
+    window.addEventListener('local-storage-update', loadWishlist);
+    return () => {
+      window.removeEventListener('local-storage-update', loadWishlist);
+    };
+  }, []);
+
+  const toggleWishlist = (productId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let updated = [...wishlist];
+    if (updated.includes(productId)) {
+      updated = updated.filter(id => id !== productId);
+    } else {
+      updated.push(productId);
+    }
+    setWishlist(updated);
+    localStorage.setItem('wishlist', JSON.stringify(updated));
+    window.dispatchEvent(new Event('local-storage-update'));
+  };
 
 
   useEffect(() => {
@@ -163,9 +190,36 @@ const Home = () => {
                 key={product.id}
                 className="product-card glass-panel"
                 onClick={() => setSelectedProduct(product)}
+                style={{ position: 'relative' }}
               >
-                <div className="product-image-placeholder text-xs flex items-center justify-center text-gray-400">
-                  Image
+                <button 
+                  className="wishlist-toggle-btn"
+                  onClick={(e) => toggleWishlist(product.id, e)}
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    background: 'rgba(0, 0, 0, 0.45)',
+                    backdropFilter: 'blur(4px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '50%',
+                    width: '34px',
+                    height: '34px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    color: wishlist.includes(product.id) ? 'hsl(var(--accent))' : '#fff',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title={wishlist.includes(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                >
+                  <Heart size={16} fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} />
+                </button>
+                <div className="product-image-placeholder">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-purple-500/5" />
+                  <Package size={48} />
                 </div>
                 <div className="product-info">
                   <h3>{product.name}</h3>
@@ -197,7 +251,7 @@ const Home = () => {
             }}>
               <X size={20} />
             </button>
-            <span className="product-category">{selectedProduct.category}</span>
+            <span className="product-category">{selectedProduct.categoryId}</span>
             <h2 className="text-gradient mt-2">{selectedProduct.name}</h2>
             <p className="product-description mt-4">{selectedProduct.description}</p>
 
@@ -298,9 +352,24 @@ const Home = () => {
               </div>
             </div>
 
-            <button className="btn-primary w-full justify-center mt-6" onClick={handleAddToCart}>
-              Add to Cart <ArrowRight size={18} />
-            </button>
+            <div className="flex gap-3 mt-6">
+              <button className="btn-primary flex-1 justify-center" onClick={handleAddToCart}>
+                Add to Cart <ArrowRight size={18} />
+              </button>
+              <button 
+                className="btn-secondary p-3 rounded-lg border flex items-center justify-center"
+                style={{
+                  borderColor: wishlist.includes(selectedProduct.id) ? 'hsl(var(--accent))' : 'rgba(255,255,255,0.1)',
+                  color: wishlist.includes(selectedProduct.id) ? 'hsl(var(--accent))' : 'white',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  minWidth: '48px'
+                }}
+                onClick={(e) => toggleWishlist(selectedProduct.id, e)}
+                title={wishlist.includes(selectedProduct.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+              >
+                <Heart size={20} fill={wishlist.includes(selectedProduct.id) ? 'currentColor' : 'none'} />
+              </button>
+            </div>
           </div>
         </div>
       )}

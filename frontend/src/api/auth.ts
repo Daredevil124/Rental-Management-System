@@ -16,4 +16,7 @@ export const authApi = {
 
   verifyEmail: (email: string) => 
     apiClient.post<{ data: { exists: boolean } }>('/auth/verify-email', { email }),
+    
+  resetPassword: (data: any) =>
+    apiClient.post('/auth/reset-password', data),
 };

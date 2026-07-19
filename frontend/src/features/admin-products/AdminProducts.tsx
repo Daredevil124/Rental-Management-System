@@ -24,8 +24,8 @@ const AdminProducts = () => {
         adminApi.getPriceLists(),
         adminApi.getRentalPeriods()
       ]);
-      setPriceLists(plRes.data || []);
-      setRentalPeriods(rpRes.data || []);
+      setPriceLists((plRes as any).data || []);
+      setRentalPeriods((rpRes as any).data || []);
     } catch (err) {
       console.error('Failed to fetch pricing metadata', err);
     }
@@ -84,15 +84,48 @@ const AdminProducts = () => {
   };
 
   const handleAddProduct = async () => {
-    if (newProduct.sku && newProduct.name) {
-      try {
-        // 1. Create Base Product
-        const productRes: any = await adminApi.createProduct({
-          name: newProduct.name,
-          slug: newProduct.sku.toLowerCase(),
-          category: newProduct.cat,
-          description: newProduct.name
-        });
+    if (!newProduct.sku.trim()) {
+      alert('Product SKU is required.');
+      return;
+    }
+    if (!newProduct.name.trim()) {
+      alert('Product Name is required.');
+      return;
+    }
+    const parsedPrice = Number(newProduct.price.replace(/[^0-9.]/g, ''));
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      alert('Daily Rental Price must be a valid number greater than 0.');
+      return;
+    }
+    if (newProduct.stock < 0) {
+      alert('Stock quantity cannot be negative.');
+      return;
+    }
+    if (newProduct.depositAmount < 0) {
+      alert('Deposit Amount cannot be negative.');
+      return;
+    }
+    if (newProduct.lateFeeAmount < 0) {
+      alert('Late Fee Amount cannot be negative.');
+      return;
+    }
+    if (newProduct.gracePeriod < 0) {
+      alert('Grace Period cannot be negative.');
+      return;
+    }
+    if (newProduct.maxFee < 0) {
+      alert('Max Late Fee cannot be negative.');
+      return;
+    }
+
+    try {
+      // 1. Create Base Product
+      const productRes: any = await adminApi.createProduct({
+        name: newProduct.name,
+        slug: newProduct.sku.toLowerCase(),
+        category: newProduct.cat,
+        description: newProduct.name
+      });
         
         const productId = productRes.data.id;
 
@@ -192,7 +225,6 @@ const AdminProducts = () => {
         console.error('Failed to create product completely', err);
         alert('Failed to save product completely. Check that SKU is unique.');
       }
-    }
   };
 
   const handleOpenEditModal = (prod: any) => {
@@ -213,27 +245,36 @@ const AdminProducts = () => {
   };
 
   const handleUpdateProduct = async () => {
-    if (editingProduct && editingProduct.name) {
-      try {
-        await adminApi.updateProduct(editingProduct.id, {
-          name: editingProduct.name,
-          category: editingProduct.category,
-          description: editingProduct.description,
-          price: Number(editingProduct.price) || 0,
-          depositAmount: Number(editingProduct.depositAmount) || 0,
-          lateFeeAmount: Number(editingProduct.lateFeeAmount) || 0,
-          lateFeeUnit: editingProduct.lateFeeUnit.toUpperCase() === 'HOURLY' ? 'HOURLY' : 'DAILY',
-          gracePeriod: Number(editingProduct.gracePeriod) || 0,
-          maxFee: Number(editingProduct.maxFee) || null,
-          stock: Number(editingProduct.stock) || 0
-        });
-        await fetchProducts();
-        setShowEditModal(false);
-        setEditingProduct(null);
-      } catch (err) {
-        console.error('Failed to update product', err);
-        alert('Failed to update product details');
-      }
+    if (!editingProduct) return;
+    
+    if (!editingProduct.name.trim()) {
+      alert('Product Name is required.');
+      return;
+    }
+    if (!editingProduct.category.trim()) {
+      alert('Product Category is required.');
+      return;
+    }
+
+    try {
+      await adminApi.updateProduct(editingProduct.id, {
+        name: editingProduct.name,
+        category: editingProduct.category,
+        description: editingProduct.description,
+        price: Number(editingProduct.price) || 0,
+        depositAmount: Number(editingProduct.depositAmount) || 0,
+        lateFeeAmount: Number(editingProduct.lateFeeAmount) || 0,
+        lateFeeUnit: editingProduct.lateFeeUnit.toUpperCase() === 'HOURLY' ? 'HOURLY' : 'DAILY',
+        gracePeriod: Number(editingProduct.gracePeriod) || 0,
+        maxFee: Number(editingProduct.maxFee) || null,
+        stock: Number(editingProduct.stock) || 0
+      });
+      await fetchProducts();
+      setShowEditModal(false);
+      setEditingProduct(null);
+    } catch (err) {
+      console.error('Failed to update product', err);
+      alert('Failed to update product details');
     }
   };
 

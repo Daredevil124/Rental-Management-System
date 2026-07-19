@@ -3,7 +3,6 @@ import './App.css';
 import Navbar from './components/Navbar';
 import Home from './features/catalog/Home';
 import AdminDashboard from './features/admin-dashboard/AdminDashboard';
-import PortalSplash from './features/auth/SplashScreen';
 import Login from './features/auth/Login';
 import Signup from './features/auth/Signup';
 import VendorSignup from './features/auth/VendorSignup';
@@ -13,6 +12,7 @@ import Checkout from './features/checkout/Checkout';
 import PickupReturnBoard from './features/pickup-return/PickupReturnBoard';
 import OrderHistory from './features/orders/OrderHistory';
 import Profile from './features/profile/Profile';
+import Wishlist from './features/wishlist/Wishlist';
 import AdminProducts from './features/admin-products/AdminProducts';
 import AdminQuotations from './features/admin-quotations/AdminQuotations';
 import AdminPricing from './features/admin-pricing/AdminPricing';
@@ -35,9 +35,10 @@ function App() {
         <Navbar />
         <main className="main-content container">
           <Routes>
-            <Route path="/" element={<PortalSplash />} />
+            <Route path="/" element={<Home />} />
             <Route path="/catalog" element={<Home />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/orders" element={<OrderHistory />} />
             <Route path="/profile" element={<Profile />} />

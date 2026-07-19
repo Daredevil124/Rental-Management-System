@@ -10,6 +10,12 @@ const Checkout = () => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
 
   useEffect(() => {
     const fetchCart = () => {
@@ -32,6 +38,33 @@ const Checkout = () => {
   const [cvv, setCvv] = useState('');
 
   const handleCheckout = async () => {
+    if (items.length === 0) {
+      showToast('Your cart is empty.');
+      return;
+    }
+
+    if (deliveryMethod === 'DELIVERY' && (!fullName.trim() || !address.trim())) {
+      showToast('Input field is not as per requirement: Full Name and Address are required for delivery.');
+      return;
+    }
+
+    // Validate Payment Details
+    const cleanCardNumber = cardNumber.replace(/[\s-]/g, '');
+    if (!/^\d{16}$/.test(cleanCardNumber)) {
+      showToast('Input field is not as per requirement: Card Number must be 16 digits.');
+      return;
+    }
+
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
+      showToast('Input field is not as per requirement: Expiry Date must be in MM/YY format.');
+      return;
+    }
+
+    if (!/^\d{3,4}$/.test(cvv)) {
+      showToast('Input field is not as per requirement: CVV must be 3 or 4 digits.');
+      return;
+    }
+
     setCheckingOut(true);
     try {
       // Create a checkout payload matching our new format
@@ -46,7 +79,7 @@ const Checkout = () => {
       setSuccess(true);
     } catch (err) {
       console.error('Checkout failed', err);
-      alert('Checkout failed. Please try again.');
+      showToast('Checkout failed. Please try again.');
     } finally {
       setCheckingOut(false);
     }
@@ -74,12 +107,13 @@ const Checkout = () => {
   const taxes = subtotal * 0.18;
   const total = subtotal + deposit + taxes;
 
-  const isFormValid = items.length > 0 && 
-                      (deliveryMethod === 'STORE_PICKUP' || (fullName && address)) && 
-                      cardNumber && expiry && cvv;
-
   return (
     <div className="checkout-container animate-fade-in">
+      {toastMessage && (
+        <div className="fixed top-4 right-4 bg-red-500/90 text-white px-6 py-3 rounded shadow-lg animate-fade-in z-50 backdrop-blur-sm border border-red-400 font-medium">
+          {toastMessage}
+        </div>
+      )}
       <h1 className="text-gradient">Checkout</h1>
       
       <div className="checkout-content">
@@ -172,7 +206,7 @@ const Checkout = () => {
             <button 
               className="btn-primary w-full justify-center mt-4" 
               onClick={handleCheckout}
-              disabled={checkingOut || !isFormValid}
+              disabled={checkingOut}
             >
               {checkingOut ? 'Processing...' : 'Pay Securely'}
             </button>

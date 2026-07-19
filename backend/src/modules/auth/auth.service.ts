@@ -4,6 +4,7 @@ import { prisma } from '../../db/prisma.js';
 import { env } from '../../config/env.js';
 import { z } from 'zod';
 import { loginSchema, registerSchema } from './auth.schema.js';
+import { emailService } from '../../services/email.service.js';
 
 export class AuthService {
   async register(data: z.infer<typeof registerSchema>) {
@@ -56,7 +57,39 @@ export class AuthService {
 
   async verifyEmail(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
-    return { exists: !!user };
+    if (!user) {
+      return { exists: false };
+    }
+
+    const resetLink = `${env.corsOrigin}/reset-password?email=${encodeURIComponent(email)}&token=mock-token-${Math.random().toString(36).substring(7)}`;
+    
+    try {
+      const emailResult = await emailService.sendPasswordResetEmail(email, resetLink);
+      if (emailResult.success) {
+        return { exists: true, previewUrl: emailResult.previewUrl, resetLink: null, emailError: null };
+      } else {
+        return { exists: true, previewUrl: null, resetLink, emailError: emailResult.error };
+      }
+    } catch (error: any) {
+      return { exists: true, previewUrl: null, resetLink, emailError: error.message };
+    }
+  }
+
+  async resetPassword(email: string, newPassword: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    await prisma.user.update({
+      where: { email },
+      data: { passwordHash },
+    });
+
+    return { success: true };
   }
 
   private generateAuthResponse(user: any) {

@@ -1,5 +1,5 @@
 import './PickupReturnBoard.css';
-import { Truck, MapPin, QrCode, CheckCircle, AlertCircle, X, ShieldAlert, Check } from 'lucide-react';
+import { Truck, MapPin, CheckCircle, AlertCircle, X, ShieldAlert, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 
@@ -29,8 +29,8 @@ const PickupReturnBoard = () => {
         adminApi.getPickups(),
         adminApi.getReturns()
       ]);
-      setPickups(pickupRes.data || []);
-      setReturns(returnRes.data || []);
+      setPickups((pickupRes as any).data || []);
+      setReturns((returnRes as any).data || []);
     } catch (err) {
       console.error('Failed to fetch operations board tasks:', err);
     } finally {
@@ -103,7 +103,6 @@ const PickupReturnBoard = () => {
     const allChecked = checklist.every((item: string) => taskChecked[item]);
     
     // Check if QR code is verified
-    const expectedQr = task.rentalOrder?.items?.[0]?.inventoryUnit?.qrCode || 'QR-HAMMER-001';
     const qrVerified = qrCodeVerified[task.id] || false;
     
     return allChecked && qrVerified;

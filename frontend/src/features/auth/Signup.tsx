@@ -34,15 +34,39 @@ const Signup = () => {
     e.preventDefault();
     setError('');
 
-    // UI Validations from Wireframe
+    if (firstName.trim().length < 2) {
+      const msg = 'First Name must be at least 2 characters long.';
+      setError(msg);
+      alert(msg);
+      return;
+    }
+
+    if (lastName.trim().length < 2) {
+      const msg = 'Last Name must be at least 2 characters long.';
+      setError(msg);
+      alert(msg);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      const msg = 'Please enter a valid email address.';
+      setError(msg);
+      alert(msg);
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setError('Password and Confirm Password fields must match.');
+      const msg = 'Password and Confirm Password fields must match.';
+      setError(msg);
+      alert(msg);
       return;
     }
 
     const passError = validatePassword(password);
     if (passError) {
       setError(passError);
+      alert(passError);
       return;
     }
 
