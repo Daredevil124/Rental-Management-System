@@ -19,6 +19,7 @@ export const updateProductSchema = z.object({
   lateFeeUnit: z.enum(['HOURLY', 'DAILY']).optional(),
   gracePeriod: z.number().min(0).optional(),
   maxFee: z.number().min(0).optional().nullable(),
+  stock: z.number().min(0).optional(),
 });
 
 export const createVariantSchema = z.object({

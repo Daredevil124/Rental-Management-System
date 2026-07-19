@@ -206,7 +206,8 @@ const AdminProducts = () => {
       lateFeeAmount: prod.rawProduct?.lateFeeRules?.[0]?.amount ? Number(prod.rawProduct.lateFeeRules[0].amount) : 500,
       lateFeeUnit: prod.rawProduct?.lateFeeRules?.[0]?.unit === 'HOURLY' ? 'Hourly' : 'Daily',
       gracePeriod: prod.rawProduct?.lateFeeRules?.[0]?.gracePeriodMinutes || 120,
-      maxFee: prod.rawProduct?.lateFeeRules?.[0]?.maxFee || 5000
+      maxFee: prod.rawProduct?.lateFeeRules?.[0]?.maxFee || 5000,
+      stock: prod.stock
     });
     setShowEditModal(true);
   };
@@ -223,7 +224,8 @@ const AdminProducts = () => {
           lateFeeAmount: Number(editingProduct.lateFeeAmount) || 0,
           lateFeeUnit: editingProduct.lateFeeUnit.toUpperCase() === 'HOURLY' ? 'HOURLY' : 'DAILY',
           gracePeriod: Number(editingProduct.gracePeriod) || 0,
-          maxFee: Number(editingProduct.maxFee) || null
+          maxFee: Number(editingProduct.maxFee) || null,
+          stock: Number(editingProduct.stock) || 0
         });
         await fetchProducts();
         setShowEditModal(false);
@@ -476,13 +478,21 @@ const AdminProducts = () => {
                   </div>
                 </div>
                 
-                <div className="form-grid-2">
+                <div className="form-grid-3">
                   <div className="form-group">
                     <label>Base Daily Price (₹)</label>
                     <input 
                       type="number" 
                       value={editingProduct.price} 
                       onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Available Stock</label>
+                    <input 
+                      type="number" 
+                      value={editingProduct.stock} 
+                      onChange={e => setEditingProduct({...editingProduct, stock: Number(e.target.value)})} 
                     />
                   </div>
                   <div className="form-group">

@@ -43,7 +43,7 @@ export class ProductsService {
   }
 
   async updateProduct(productId: string, data: z.infer<typeof updateProductSchema>) {
-    const { name, description, category, isActive, price, depositAmount, lateFeeAmount, lateFeeUnit, gracePeriod, maxFee } = data;
+    const { name, description, category, isActive, price, depositAmount, lateFeeAmount, lateFeeUnit, gracePeriod, maxFee, stock } = data;
 
     return prisma.$transaction(async (tx) => {
       // 1. Update product base info
@@ -135,6 +135,44 @@ export class ProductsService {
               isActive: true
             }
           });
+        }
+      }
+
+      // 5. Stock adjustments (InventoryUnits)
+      if (stock !== undefined) {
+        const variants = await tx.productVariant.findMany({
+          where: { productId },
+          include: { inventoryUnits: true }
+        });
+        const currentUnits = variants.flatMap(v => v.inventoryUnits);
+        const currentCount = currentUnits.length;
+
+        if (stock > currentCount) {
+          const variant = variants[0];
+          if (variant) {
+            const toAdd = stock - currentCount;
+            for (let i = 0; i < toAdd; i++) {
+              await tx.inventoryUnit.create({
+                data: {
+                  variantId: variant.id,
+                  assetTag: `AST-${variant.sku}-${Date.now()}-${i}`,
+                  qrCode: `QR-${variant.sku}-${Date.now()}-${i}`,
+                  status: 'AVAILABLE',
+                  condition: 'GOOD',
+                  location: 'Warehouse A'
+                }
+              });
+            }
+          }
+        } else if (stock < currentCount) {
+          const toDeleteCount = currentCount - stock;
+          const availableUnits = currentUnits.filter(u => u.status === 'AVAILABLE');
+          const idsToDelete = availableUnits.slice(0, toDeleteCount).map(u => u.id);
+          if (idsToDelete.length > 0) {
+            await tx.inventoryUnit.deleteMany({
+              where: { id: { in: idsToDelete } }
+            });
+          }
         }
       }
 
