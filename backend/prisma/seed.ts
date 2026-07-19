@@ -22,6 +22,8 @@ async function main() {
   await prisma.depositRule.deleteMany();
   await prisma.lateFeeRule.deleteMany();
   await prisma.inventoryUnit.deleteMany();
+  await prisma.quotationItem.deleteMany();
+  await prisma.quotation.deleteMany();
   await prisma.productVariant.deleteMany();
   await prisma.product.deleteMany();
   await prisma.rentalPeriod.deleteMany();
